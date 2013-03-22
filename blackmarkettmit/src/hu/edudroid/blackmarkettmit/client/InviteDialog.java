@@ -1,6 +1,6 @@
 package hu.edudroid.blackmarkettmit.client;
 
-import hu.edudroid.blackmarkettmit.shared.Player;
+import hu.edudroid.blackmarkettmit.shared.Contact;
 
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
@@ -15,9 +15,9 @@ public class InviteDialog extends DialogBox implements ClickHandler {
 	private Button cooperateButton;
 	private Button cancelButton;
 	private TradeActionHandler listener;
-	private Player player;
+	private Contact player;
 
-	public InviteDialog(Player player, TradeActionHandler listener) {
+	public InviteDialog(Contact player, TradeActionHandler listener) {
 		this.listener = listener;
 		this.player = player;
 		VerticalPanel mainPanel = new VerticalPanel();

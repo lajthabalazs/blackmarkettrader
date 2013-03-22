@@ -2,7 +2,7 @@ package hu.edudroid.blackmarkettmit.client;
 
 import hu.edudroid.blackmarkettmit.client.GetContactDialog.GetContactDialogListener;
 import hu.edudroid.blackmarkettmit.shared.LoginInfo;
-import hu.edudroid.blackmarkettmit.shared.Player;
+import hu.edudroid.blackmarkettmit.shared.Contact;
 import hu.edudroid.blackmarkettmit.shared.PlayerState;
 
 import java.util.ArrayList;
@@ -28,8 +28,9 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 public class Blackmarkettmit implements EntryPoint, GetContactDialogListener, ClickHandler, TradeActionHandler {
 	private GetContactDialog getContactDialog;
 	private Button addContactButton;
-	private ArrayList<Player> contactList;
+	private ArrayList<Contact> contactList;
 	private LoginInfo loginInfo;
+	private final ContactListService contactListService = GWT.create(ContactListService.class);
 	
 	private Anchor signInLink = new Anchor("Sign In");
 	private Anchor signOutLink = new Anchor("Sign Out");
@@ -68,12 +69,12 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener, Cl
 	}
 
 	private void initUsers() {
-		contactList = new ArrayList<Player>();
+		contactList = new ArrayList<Contact>();
 		for (int i = 0; i < 20; i++) {
-			contactList.add(new Player(i, "Player " + i));
+			contactList.add(new Contact(i, "Player " + i));
 		}
 		// Order contact list
-		java.util.Collections.sort(contactList, Player.getComparator());
+		java.util.Collections.sort(contactList, Contact.getComparator());
 	}
  
 	private void initGame() {
@@ -88,7 +89,7 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener, Cl
 		actionTable.setWidget(0, 4, new Label("I lost"));
 		actionTable.setWidget(0, 5, new Label("I won"));
 		actionTable.setWidget(0, 6, new Label("Action"));
-		for (Player player:contactList) {
+		for (Contact player:contactList) {
 			int nextRow = actionTable.getRowCount();
 			actionTable.setWidget(nextRow, 0, new Label(player.getDisplayName()));
 			actionTable.setWidget(nextRow, 1, new Label(""+ player.getGameCount()));
@@ -136,7 +137,7 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener, Cl
 	}
 
 	@Override
-	public void requestContactFromPlayer(Player player) {
+	public void requestContactFromPlayer(Contact player) {
 		getContactDialog.hide();
 	}
 
@@ -148,14 +149,14 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener, Cl
 	}
 
 	@Override
-	public void cooperate(Player player) {
+	public void cooperate(Contact player) {
 	}
 
 	@Override
-	public void screw(Player player) {
+	public void screw(Contact player) {
 	}
 
 	@Override
-	public void reject(Player player) {
+	public void reject(Contact player) {
 	}
 }

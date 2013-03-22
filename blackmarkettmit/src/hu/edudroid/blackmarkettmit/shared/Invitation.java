@@ -2,19 +2,37 @@ package hu.edudroid.blackmarkettmit.shared;
 
 import java.util.Comparator;
 
-public class Player {
-	private long id;
+import javax.jdo.annotations.IdGeneratorStrategy;
+import javax.jdo.annotations.IdentityType;
+import javax.jdo.annotations.PersistenceCapable;
+import javax.jdo.annotations.Persistent;
+import javax.jdo.annotations.PrimaryKey;
+
+@PersistenceCapable(identityType = IdentityType.APPLICATION)
+public class Invitation {
+	@PrimaryKey
+	@Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
+	private long contactId;
+	@Persistent
+	private long playerId;
+	@Persistent
 	private String displayName;
-	private PlayerState state;
+	@Persistent
 	private int gameCount;
+	@Persistent
 	private int cooperationCount;
+	@Persistent
 	private int screwedMeCount;
+	@Persistent
 	private int screwedHimCount;
+	@Persistent
 	private int bothScrevedCount;
-	private static Comparator<Player> comparator = new Comparator<Player>() {
-		
+	
+	private PlayerState state; // State is not persisted, it is calculated from events and stats
+
+	private static Comparator<Invitation> comparator = new Comparator<Invitation>() {
 		@Override
-		public int compare(Player o1, Player o2) {
+		public int compare(Invitation o1, Invitation o2) {
 			if (o1.getState().getValue() < o2.getState().getValue()) {
 				return -1;
 			} else if (o1.getState().getValue() > o2.getState().getValue()) {
@@ -23,9 +41,10 @@ public class Player {
 			return o1.getDisplayName().compareTo(o2.getDisplayName());
 		}
 	};
-	
-	public Player(int id, String displayName) {
-		this.id = id;
+
+	public Invitation() {}
+	public Invitation(int id, String displayName) {
+		this.playerId = id;
 		this.displayName = displayName;
 		double choice = Math.random();
 		state = (choice<0.25)?PlayerState.NEW:((choice<0.5)?PlayerState.NEUTRAL:((choice<0.75)?PlayerState.INVITED_ME:PlayerState.INVITED_HIM));
@@ -44,12 +63,12 @@ public class Player {
 		}
 	}
 
-	public long getId() {
-		return id;
+	public long getPlayerId() {
+		return playerId;
 	}
 
-	public void setId(long id) {
-		this.id = id;
+	public void setPlayerId(long id) {
+		this.playerId = id;
 	}
 
 	public String getDisplayName() {
@@ -108,7 +127,7 @@ public class Player {
 		this.gameCount = gameCount;
 	}
 
-	public static Comparator<Player> getComparator() {
+	public static Comparator<Invitation> getComparator() {
 		return comparator;
 	}
 }

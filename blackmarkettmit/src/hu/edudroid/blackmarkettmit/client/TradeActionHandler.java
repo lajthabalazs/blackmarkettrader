@@ -1,9 +1,9 @@
 package hu.edudroid.blackmarkettmit.client;
 
-import hu.edudroid.blackmarkettmit.shared.Player;
+import hu.edudroid.blackmarkettmit.shared.Contact;
 
 public interface TradeActionHandler {
-	void cooperate(Player player);
-	void screw(Player player);
-	void reject(Player player);
+	void cooperate(Contact player);
+	void screw(Contact player);
+	void reject(Contact player);
 }

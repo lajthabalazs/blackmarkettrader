@@ -1,6 +1,6 @@
 package hu.edudroid.blackmarkettmit.client;
 
-import hu.edudroid.blackmarkettmit.shared.Player;
+import hu.edudroid.blackmarkettmit.shared.Contact;
 
 import java.util.ArrayList;
 
@@ -11,7 +11,6 @@ import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.FlexTable;
 import com.google.gwt.user.client.ui.HasHorizontalAlignment;
 import com.google.gwt.user.client.ui.HasVerticalAlignment;
-import com.google.gwt.user.client.ui.HasHorizontalAlignment.HorizontalAlignmentConstant;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ScrollPanel;
 import com.google.gwt.user.client.ui.VerticalPanel;
@@ -22,9 +21,9 @@ public class GetContactDialog extends DialogBox implements ClickHandler {
 	Button cancelButton;
 	Button randomButton;
 	private GetContactDialogListener listener;
-	private ArrayList<Player> players;
+	private ArrayList<Contact> players;
 	
-	public GetContactDialog(ArrayList<Player> players, GetContactDialogListener listener) {
+	public GetContactDialog(ArrayList<Contact> players, GetContactDialogListener listener) {
 		this.listener = listener;
 		this.players = players;
 		setText("Get a new contact");
@@ -67,6 +66,6 @@ public class GetContactDialog extends DialogBox implements ClickHandler {
 
 	public interface GetContactDialogListener {
 		void getRandom();
-		void requestContactFromPlayer(Player player);
+		void requestContactFromPlayer(Contact player);
 	}
 }

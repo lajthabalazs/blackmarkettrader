@@ -29,5 +29,16 @@
     <servlet-name>SystemServiceServlet</servlet-name>
     <url-pattern>/_ah/spi/*</url-pattern>
   </servlet-mapping>
+  
+  <servlet>
+    <servlet-name>loginService</servlet-name>
+    <servlet-class>hu.edudroid.blackmarkettmit.server.LoginServiceImpl</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>loginService</servlet-name>
+    <url-pattern>/blackmarkettmit/login</url-pattern>
+  </servlet-mapping>
+  
 
 </web-app>

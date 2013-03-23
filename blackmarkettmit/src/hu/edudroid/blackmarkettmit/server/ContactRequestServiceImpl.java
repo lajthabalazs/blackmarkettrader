@@ -2,20 +2,14 @@ package hu.edudroid.blackmarkettmit.server;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-
-import javax.jdo.PersistenceManager;
-import javax.jdo.Query;
 
 import hu.edudroid.blackmarkettmit.client.NotLoggedInException;
 import hu.edudroid.blackmarkettmit.client.services.ContactRequestService;
-import hu.edudroid.blackmarkettmit.server.persistence.BlackMarketUser;
 import hu.edudroid.blackmarkettmit.shared.Contact;
 import hu.edudroid.blackmarkettmit.shared.PlayerState;
 import hu.edudroid.blackmarkettmit.shared.RecommandationRequest;
 
-import com.google.appengine.api.datastore.KeyFactory;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 
 public class ContactRequestServiceImpl  extends RemoteServiceServlet implements ContactRequestService{
@@ -37,9 +31,8 @@ public class ContactRequestServiceImpl  extends RemoteServiceServlet implements 
 
 	@Override
 	public List<Contact> newRandomContact() throws NotLoggedInException {
-		PersistenceManager userManager = PMF.get().getPersistenceManager();
-		BlackMarketUser blackMarketUser = UserManager.getCurrentUser(userManager);
-		List<hu.edudroid.blackmarkettmit.server.persistence.Contact> contacts = blackMarketUser.getContacts();
+		return null;
+		/*
 		try {
 			contacts.get(0);
 		} catch (NullPointerException e) {
@@ -89,22 +82,18 @@ public class ContactRequestServiceImpl  extends RemoteServiceServlet implements 
 			rets.add(ret);
 			return rets;
 		}
+		*/
 	}
 
 	@Override
 	public List<Contact> getContacts() throws NotLoggedInException {
-		PersistenceManager userManager = PMF.get().getPersistenceManager();
-		BlackMarketUser blacMarketUser = UserManager.getCurrentUser(userManager);
-		List<hu.edudroid.blackmarkettmit.server.persistence.Contact> dbContacts = blacMarketUser.getContacts();
-		userManager.close();
-		if (dbContacts == null) {
-			return null;
-		}
 		ArrayList<Contact> contacts = new ArrayList<Contact>();
+		return contacts;
+		/*
 		try {
-			for (hu.edudroid.blackmarkettmit.server.persistence.Contact dbContact : dbContacts) {
+			for (Contact dbContact : contacts) {
 				Contact contact = new Contact();
-				contact.setPlayerKey(KeyFactory.keyToString(dbContact.getPlayer().getUserKey()));
+				contact.setPlayerKey(dbContact.getPlayerKey());
 				contact.setBothScrevedCount(dbContact.getBothScrevedCount());
 				contact.setCooperationCount(dbContact.getCooperationCount());
 				contact.setDisplayName(dbContact.getDisplayName());
@@ -118,5 +107,6 @@ public class ContactRequestServiceImpl  extends RemoteServiceServlet implements 
 		} catch (NullPointerException e) {
 			return null;
 		}
+		*/
 	}
 }

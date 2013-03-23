@@ -6,8 +6,8 @@ import java.util.List;
 
 import hu.edudroid.blackmarkettmit.client.NotLoggedInException;
 import hu.edudroid.blackmarkettmit.client.services.ContactRequestService;
+import hu.edudroid.blackmarkettmit.shared.BlackMarketUser;
 import hu.edudroid.blackmarkettmit.shared.Contact;
-import hu.edudroid.blackmarkettmit.shared.PlayerState;
 import hu.edudroid.blackmarkettmit.shared.RecommandationRequest;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
@@ -31,82 +31,43 @@ public class ContactRequestServiceImpl  extends RemoteServiceServlet implements 
 
 	@Override
 	public List<Contact> newRandomContact() throws NotLoggedInException {
-		return null;
-		/*
-		try {
-			contacts.get(0);
-		} catch (NullPointerException e) {
-			contacts = new ArrayList<hu.edudroid.blackmarkettmit.server.persistence.Contact>();
-		} catch (ArrayIndexOutOfBoundsException e) {
-			contacts = new ArrayList<hu.edudroid.blackmarkettmit.server.persistence.Contact>();
+		BlackMarketUser user = UserManager.getCurrentUser();
+		if (user == null) {
+			return null;
 		}
-		BlackMarketUser newContact = null;
-		PersistenceManager contactManager = PMF.get().getPersistenceManager();
-		tries:for (int i = 0; i < 10; i++) {
-			Query q = contactManager.newQuery(BlackMarketUser.class);
-			q.setFilter("userKey != :p1");
-			q.setFilter("random < :p2");
-			q.setOrdering("random desc");
-			HashMap<String, Object> parameterMap = new HashMap<String, Object>();
-			parameterMap.put("p1", blackMarketUser.getUserKey());
-			parameterMap.put("p2", (float)Math.random());
-			@SuppressWarnings("unchecked")
-			List<BlackMarketUser> result = (List<BlackMarketUser>) q.executeWithMap(parameterMap);
-			for (BlackMarketUser possibleContact : result) {
-				if (contacts.contains(possibleContact)) {
-					continue tries;
-				} else {
-					newContact = possibleContact;
-					break tries;
+		List<Contact> contacts = ContactUtils.getContactsForUser(user.getUserKey());
+		BlackMarketUser possibleContact = null;
+		tries:for (int i = 0; i < 30; i++) {
+			possibleContact = BlackMarketUserUtils.getRandomUser();
+			if (possibleContact != null) {
+				for (Contact contact : contacts) {
+					if (contact.getFirstPlayerKey().equals(possibleContact.getUserKey())
+							|| contact.getSecondPlayerKey().equals(possibleContact.getUserKey())
+							|| possibleContact.getUserKey().equals(user.getUserKey())) {
+						possibleContact = null;
+						continue tries;
+					}
 				}
+				break tries;
 			}
 		}
-		if (newContact == null) {
-			userManager.close();
+		if (possibleContact == null) {
+			// Couldn't find contact
 			return null;
 		} else {
-			hu.edudroid.blackmarkettmit.server.persistence.Contact dbContact = new hu.edudroid.blackmarkettmit.server.persistence.Contact();
-			dbContact.setPlayer(newContact);
-			dbContact.setDisplayName("Display name " + ((int)(Math.random() * 1000000)));
-			contactManager.makePersistent(dbContact);
-			contactManager.close();
+			// Create contact from user and found possible contact
+			Contact newContact = ContactUtils.createContact(user, possibleContact);
+			ContactUtils.save(newContact);
 			// Add to contact list
-			contacts.add(dbContact);
-			blackMarketUser.setContacts(contacts);
-			userManager.close();
-			Contact ret = new Contact();
-			ret.setPlayerKey(KeyFactory.keyToString(newContact.getUserKey()));
-			ret.setDisplayName(dbContact.getDisplayName());
-			ret.setState(PlayerState.NEW);
 			ArrayList<Contact> rets = new ArrayList<Contact>();
-			rets.add(ret);
+			rets.add(newContact);
 			return rets;
 		}
-		*/
 	}
 
 	@Override
 	public List<Contact> getContacts() throws NotLoggedInException {
-		ArrayList<Contact> contacts = new ArrayList<Contact>();
-		return contacts;
-		/*
-		try {
-			for (Contact dbContact : contacts) {
-				Contact contact = new Contact();
-				contact.setPlayerKey(dbContact.getPlayerKey());
-				contact.setBothScrevedCount(dbContact.getBothScrevedCount());
-				contact.setCooperationCount(dbContact.getCooperationCount());
-				contact.setDisplayName(dbContact.getDisplayName());
-				contact.setGameCount(dbContact.getGameCount());
-				contact.setScrewedHimCount(dbContact.getScrewedHimCount());
-				contact.setScrewedMeCount(dbContact.getScrewedMeCount());
-				contact.setState(PlayerState.NEW);
-				contacts.add(contact);
-			}
-			return contacts;
-		} catch (NullPointerException e) {
-			return null;
-		}
-		*/
+		BlackMarketUser blackMarketUser = UserManager.getCurrentUser();
+		return ContactUtils.getContactsForUser(blackMarketUser.getUserKey());
 	}
 }

@@ -1,7 +1,6 @@
 package hu.edudroid.blackmarkettmit.server;
 
 import hu.edudroid.blackmarkettmit.client.services.LoginService;
-import hu.edudroid.blackmarkettmit.server.persistence.BlackMarketUserUtils;
 import hu.edudroid.blackmarkettmit.shared.BlackMarketUser;
 import hu.edudroid.blackmarkettmit.shared.LoginInfo;
 
@@ -27,7 +26,7 @@ public class LoginServiceImpl extends RemoteServiceServlet implements
 			loginInfo.setLogoutUrl(userService.createLogoutURL(requestUri));
 			// Check if user is part of the system
 			
-			BlackMarketUser blackMarketUser = UserManager.getCurrentUser(user);
+			BlackMarketUser blackMarketUser = BlackMarketUserUtils.getUserByEmail(user.getEmail());
 			if (blackMarketUser == null) {
 				blackMarketUser = new BlackMarketUser();
 				blackMarketUser.setExternalId(loginInfo.getEmailAddress());

@@ -12,11 +12,6 @@ public class BlackMarketUser implements Serializable{
 	public BlackMarketUser() {
 		
 	}
-	public BlackMarketUser(String userKey, String externalId, float random) {
-		this.userKey = userKey;
-		this.externalId = externalId;
-		this.random = random;
-	}
 
 	public String getUserKey() {
 		return userKey;

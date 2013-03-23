@@ -6,6 +6,7 @@ import hu.edudroid.blackmarkettmit.client.services.ContactRequestServiceAsync;
 import hu.edudroid.blackmarkettmit.client.services.LoginService;
 import hu.edudroid.blackmarkettmit.client.services.LoginServiceAsync;
 import hu.edudroid.blackmarkettmit.shared.Contact;
+import hu.edudroid.blackmarkettmit.shared.ContactComparator;
 import hu.edudroid.blackmarkettmit.shared.LoginInfo;
 import hu.edudroid.blackmarkettmit.shared.PlayerState;
 import hu.edudroid.blackmarkettmit.shared.RecommandationRequest;
@@ -161,15 +162,24 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener, Cl
 		if (contactList == null) {
 			contactList = new ArrayList<Contact>();
 		}
-		java.util.Collections.sort(contactList, Contact.getComparator());
+		java.util.Collections.sort(contactList, new ContactComparator());
 		for (Contact player:contactList) {
 			int nextRow = actionTable.getRowCount();
-			actionTable.setWidget(nextRow, 0, new Label(player.getDisplayName()));
-			actionTable.setWidget(nextRow, 1, new Label(""+ player.getGameCount()));
-			actionTable.setWidget(nextRow, 2, new Label(""+ player.getCooperationCount()));
-			actionTable.setWidget(nextRow, 3, new Label(""+ player.getBothScrevedCount()));
-			actionTable.setWidget(nextRow, 4, new Label(""+ player.getScrewedMeCount()));
-			actionTable.setWidget(nextRow, 5, new Label(""+ player.getScrewedHimCount()));
+			if (player.getViewer() == 0) {
+				actionTable.setWidget(nextRow, 0, new Label(player.getSecondDisplayName()));
+				actionTable.setWidget(nextRow, 1, new Label(""+ player.getGameCount()));
+				actionTable.setWidget(nextRow, 2, new Label(""+ player.getCooperationCount()));
+				actionTable.setWidget(nextRow, 3, new Label(""+ player.getBothDefectCount()));
+				actionTable.setWidget(nextRow, 4, new Label(""+ player.getSecondDefectCount()));
+				actionTable.setWidget(nextRow, 5, new Label(""+ player.getFirstDefectCount()));
+			} else {
+				actionTable.setWidget(nextRow, 0, new Label(player.getFirstDisplayName()));
+				actionTable.setWidget(nextRow, 1, new Label(""+ player.getGameCount()));
+				actionTable.setWidget(nextRow, 2, new Label(""+ player.getCooperationCount()));
+				actionTable.setWidget(nextRow, 3, new Label(""+ player.getBothDefectCount()));
+				actionTable.setWidget(nextRow, 4, new Label(""+ player.getFirstDefectCount()));
+				actionTable.setWidget(nextRow, 5, new Label(""+ player.getSecondDefectCount()));
+			}
 			if (player.getState() == PlayerState.INVITED_HIM) {
 				actionTable.setWidget(nextRow, 6, new Label("Waiting response"));
 			} else if (player.getState() == PlayerState.INVITED_ME) {

@@ -31,7 +31,11 @@ public class GetContactDialog extends DialogBox implements ClickHandler {
 		VerticalPanel mainPanel = new VerticalPanel();
 		FlexTable table = new FlexTable();
 		for (int i = 0; i < players.size(); i++) {
-			table.setWidget(i, 0, new Label(players.get(i).getDisplayName()));
+			if (players.get(i).getViewer() == 0) {
+				table.setWidget(i, 0, new Label(players.get(i).getSecondDisplayName()));
+			} else {
+				table.setWidget(i, 0, new Label(players.get(i).getFirstDisplayName()));
+			}
 			Button requestContactButton = new Button("Request contact");
 			requestContactButtons.add(requestContactButton);
 			requestContactButton.addClickHandler(this);

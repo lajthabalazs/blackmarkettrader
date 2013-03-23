@@ -21,7 +21,11 @@ public class InviteDialog extends DialogBox implements ClickHandler {
 		this.listener = listener;
 		this.player = player;
 		VerticalPanel mainPanel = new VerticalPanel();
-		setText("Invite " + player.getDisplayName());
+		if (player.getViewer() == 0) {
+			setText("Invite " + player.getSecondDisplayName());
+		} else {
+			setText("Invite " + player.getFirstDisplayName());
+		}
 		Label label = new Label("Let's get this started! What will you do?");
 		screwButton = new Button("I'll screw him/her over");
 		screwButton.addClickHandler(this);

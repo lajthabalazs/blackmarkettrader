@@ -37,17 +37,26 @@ public class ContactRequestServiceImpl  extends RemoteServiceServlet implements 
 		}
 		List<Contact> contacts = ContactUtils.getContactsForUser(user.getUserKey());
 		BlackMarketUser possibleContact = null;
+		System.out.println("Random contact for " + user.getUserKey());
 		tries:for (int i = 0; i < 30; i++) {
 			possibleContact = BlackMarketUserUtils.getRandomUser();
-			if (possibleContact != null) {
-				for (Contact contact : contacts) {
-					if (contact.getFirstPlayerKey().equals(possibleContact.getUserKey())
-							|| contact.getSecondPlayerKey().equals(possibleContact.getUserKey())
-							|| possibleContact.getUserKey().equals(user.getUserKey())) {
-						possibleContact = null;
-						continue tries;
-					}
+			if (possibleContact == null) {
+				System.out.println("Contact not found.");
+				continue tries;
+			}
+			if (possibleContact.getUserKey().equals(user.getUserKey())) {
+				System.out.println("Contact self " + possibleContact.getUserKey());
+				possibleContact = null;
+				continue tries;
+			}
+			for (Contact contact : contacts) {
+				if (contact.getFirstPlayerKey().equals(possibleContact.getUserKey())
+						|| contact.getSecondPlayerKey().equals(possibleContact.getUserKey())) {
+					possibleContact = null;
+					continue tries;
 				}
+				// We have an eligible contact
+				System.out.println("Contact found " + possibleContact.getUserKey());
 				break tries;
 			}
 		}

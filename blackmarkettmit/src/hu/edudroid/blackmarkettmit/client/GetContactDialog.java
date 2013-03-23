@@ -30,17 +30,19 @@ public class GetContactDialog extends DialogBox implements ClickHandler {
 		setText("Get a new contact");
 		VerticalPanel mainPanel = new VerticalPanel();
 		FlexTable table = new FlexTable();
-		for (int i = 0; i < players.size(); i++) {
-			if (players.get(i).getViewer() == 0) {
-				table.setWidget(i, 0, new Label(players.get(i).getSecondDisplayName()));
-			} else {
-				table.setWidget(i, 0, new Label(players.get(i).getFirstDisplayName()));
+		if (players!=null) {
+			for (int i = 0; i < players.size(); i++) {
+				if (players.get(i).getViewer() == 0) {
+					table.setWidget(i, 0, new Label(players.get(i).getSecondDisplayName()));
+				} else {
+					table.setWidget(i, 0, new Label(players.get(i).getFirstDisplayName()));
+				}
+				Button requestContactButton = new Button("Request contact");
+				requestContactButtons.add(requestContactButton);
+				requestContactButton.addClickHandler(this);
+				table.setWidget(i, 1, requestContactButton);
+				table.getCellFormatter().setAlignment(i, 1,  HasHorizontalAlignment.ALIGN_RIGHT, HasVerticalAlignment.ALIGN_TOP);
 			}
-			Button requestContactButton = new Button("Request contact");
-			requestContactButtons.add(requestContactButton);
-			requestContactButton.addClickHandler(this);
-			table.setWidget(i, 1, requestContactButton);
-			table.getCellFormatter().setAlignment(i, 1,  HasHorizontalAlignment.ALIGN_RIGHT, HasVerticalAlignment.ALIGN_TOP);
 		}
 		cancelButton = new Button("Never mind");
 		cancelButton.addClickHandler(this);		

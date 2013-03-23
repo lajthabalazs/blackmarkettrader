@@ -25,7 +25,7 @@ public class ContactUtils {
 		Filter playerFilter = CompositeFilterOperator.or(firstPlayerFilter, secondPlayerFilter);		
 
 		// Use class Query to assemble a query
-		Query q = new Query("BlackMarketUser").setFilter(playerFilter);
+		Query q = new Query("Contact").setFilter(playerFilter);
 
 		// Use PreparedQuery interface to retrieve results
 		PreparedQuery pq = datastore.prepare(q);
@@ -67,11 +67,11 @@ public class ContactUtils {
 		contact.setFirstDisplayName((String)result.getProperty("firstDisplayName"));
 		contact.setSecondDisplayName((String)result.getProperty("secondDisplayName"));
 		
-		contact.setGameCount((Integer)result.getProperty("gameCount"));
-		contact.setCooperationCount((Integer)result.getProperty("cooperationCount"));
-		contact.setBothDefectCount((Integer)result.getProperty("bothDefectCount"));
-		contact.setFirstDefectCount((Integer)result.getProperty("firstDefectCount"));
-		contact.setSecondDefectCount((Integer)result.getProperty("secondDefectCount"));
+		contact.setGameCount((int)((Long)result.getProperty("gameCount")).longValue());
+		contact.setCooperationCount((int)((Long)result.getProperty("cooperationCount")).longValue());
+		contact.setBothDefectCount((int)((Long)result.getProperty("bothDefectCount")).longValue());
+		contact.setFirstDefectCount((int)((Long)result.getProperty("firstDefectCount")).longValue());
+		contact.setSecondDefectCount((int)((Long)result.getProperty("secondDefectCount")).longValue());
 		return contact;
 	}
 

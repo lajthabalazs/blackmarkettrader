@@ -30,7 +30,9 @@ public class ContactUtils {
 		// Use PreparedQuery interface to retrieve results
 		PreparedQuery pq = datastore.prepare(q);
 		List<Contact> contacts = new ArrayList<Contact>();
+		System.out.println("Requested contacts for " + blackMarketUserKey);
 		for (Entity result : pq.asIterable()) {
+			System.out.println("Received " + result );
 			Contact contact = createFromEntity(result);
 			if (blackMarketUserKey.equals(contact.getFirstPlayerKey())) {
 				contact.setViewer(0);

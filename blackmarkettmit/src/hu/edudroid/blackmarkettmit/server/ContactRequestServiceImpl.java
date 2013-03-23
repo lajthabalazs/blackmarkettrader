@@ -49,16 +49,21 @@ public class ContactRequestServiceImpl  extends RemoteServiceServlet implements 
 				possibleContact = null;
 				continue tries;
 			}
+			System.out.println("Checking " + possibleContact.getUserKey());
+			System.out.println("For " + contacts.size() + " contacts.");
 			for (Contact contact : contacts) {
+				System.out.println("Matching against " + contact.getFirstPlayerKey());
+				System.out.println("and " + contact.getSecondPlayerKey());
 				if (contact.getFirstPlayerKey().equals(possibleContact.getUserKey())
 						|| contact.getSecondPlayerKey().equals(possibleContact.getUserKey())) {
+					System.out.println("Match, next try.");
 					possibleContact = null;
 					continue tries;
 				}
-				// We have an eligible contact
-				System.out.println("Contact found " + possibleContact.getUserKey());
-				break tries;
 			}
+			// We have an eligible contact
+			System.out.println("Contact found " + possibleContact.getUserKey());
+			break tries;
 		}
 		if (possibleContact == null) {
 			// Couldn't find contact
@@ -77,6 +82,10 @@ public class ContactRequestServiceImpl  extends RemoteServiceServlet implements 
 	@Override
 	public List<Contact> getContacts() throws NotLoggedInException {
 		BlackMarketUser blackMarketUser = UserManager.getCurrentUser();
-		return ContactUtils.getContactsForUser(blackMarketUser.getUserKey());
+		if (blackMarketUser != null) {
+			return ContactUtils.getContactsForUser(blackMarketUser.getUserKey());
+		} else {
+			return null;
+		}
 	}
 }

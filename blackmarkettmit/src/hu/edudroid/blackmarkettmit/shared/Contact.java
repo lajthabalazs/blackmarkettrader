@@ -1,31 +1,16 @@
 package hu.edudroid.blackmarkettmit.shared;
 
+import hu.edudroid.blackmarkettmit.shared.PlayerState;
+
 import java.util.Comparator;
 
-import javax.jdo.annotations.IdGeneratorStrategy;
-import javax.jdo.annotations.IdentityType;
-import javax.jdo.annotations.PersistenceCapable;
-import javax.jdo.annotations.Persistent;
-import javax.jdo.annotations.PrimaryKey;
-
-@PersistenceCapable(identityType = IdentityType.APPLICATION)
 public class Contact {
-	@PrimaryKey
-	@Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
-	private long contactId;
-	@Persistent
-	private long playerId;
-	@Persistent
+	private String playerKey;
 	private String displayName;
-	@Persistent
 	private int gameCount;
-	@Persistent
 	private int cooperationCount;
-	@Persistent
 	private int screwedMeCount;
-	@Persistent
 	private int screwedHimCount;
-	@Persistent
 	private int bothScrevedCount;
 	
 	private PlayerState state; // State is not persisted, it is calculated from events and stats
@@ -43,8 +28,8 @@ public class Contact {
 	};
 
 	public Contact() {}
-	public Contact(int id, String displayName) {
-		this.playerId = id;
+	public Contact(String playerKey, String displayName) {
+		this.playerKey = playerKey;
 		this.displayName = displayName;
 		double choice = Math.random();
 		state = (choice<0.25)?PlayerState.NEW:((choice<0.5)?PlayerState.NEUTRAL:((choice<0.75)?PlayerState.INVITED_ME:PlayerState.INVITED_HIM));
@@ -63,12 +48,12 @@ public class Contact {
 		}
 	}
 
-	public long getPlayerId() {
-		return playerId;
+	public String getPlayerKey() {
+		return playerKey;
 	}
 
-	public void setPlayerId(long id) {
-		this.playerId = id;
+	public void setPlayerKey(String playerKey) {
+		this.playerKey = playerKey;
 	}
 
 	public String getDisplayName() {

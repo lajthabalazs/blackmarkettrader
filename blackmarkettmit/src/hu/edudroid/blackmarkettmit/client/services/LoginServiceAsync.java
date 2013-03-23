@@ -1,4 +1,4 @@
-package hu.edudroid.blackmarkettmit.client;
+package hu.edudroid.blackmarkettmit.client.services;
 
 import hu.edudroid.blackmarkettmit.shared.LoginInfo;
 

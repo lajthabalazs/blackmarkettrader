@@ -3,6 +3,7 @@ package hu.edudroid.blackmarkettmit.client;
 import hu.edudroid.blackmarkettmit.shared.Contact;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
@@ -21,9 +22,9 @@ public class GetContactDialog extends DialogBox implements ClickHandler {
 	Button cancelButton;
 	Button randomButton;
 	private GetContactDialogListener listener;
-	private ArrayList<Contact> players;
+	private List<Contact> players;
 	
-	public GetContactDialog(ArrayList<Contact> players, GetContactDialogListener listener) {
+	public GetContactDialog(List<Contact> players, GetContactDialogListener listener) {
 		this.listener = listener;
 		this.players = players;
 		setText("Get a new contact");

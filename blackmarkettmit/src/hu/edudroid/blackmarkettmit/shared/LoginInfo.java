@@ -10,6 +10,7 @@ public class LoginInfo implements Serializable {
 	private String logoutUrl;
 	private String emailAddress;
 	private String nickname;
+	private BlackMarketUser blackMarketUser;
 
 	public boolean isLoggedIn() {
 		return loggedIn;
@@ -49,5 +50,13 @@ public class LoginInfo implements Serializable {
 
 	public void setNickname(String nickname) {
 		this.nickname = nickname;
+	}
+
+	public BlackMarketUser getBlackMarketUser() {
+		return blackMarketUser;
+	}
+
+	public void setBlackMarketUser(BlackMarketUser blackMarketUser) {
+		this.blackMarketUser = blackMarketUser;
 	}
 }

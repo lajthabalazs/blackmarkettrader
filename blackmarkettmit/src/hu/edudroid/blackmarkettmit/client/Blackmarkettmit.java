@@ -1,11 +1,17 @@
 package hu.edudroid.blackmarkettmit.client;
 
 import hu.edudroid.blackmarkettmit.client.GetContactDialog.GetContactDialogListener;
-import hu.edudroid.blackmarkettmit.shared.LoginInfo;
+import hu.edudroid.blackmarkettmit.client.services.ContactRequestService;
+import hu.edudroid.blackmarkettmit.client.services.ContactRequestServiceAsync;
+import hu.edudroid.blackmarkettmit.client.services.LoginService;
+import hu.edudroid.blackmarkettmit.client.services.LoginServiceAsync;
 import hu.edudroid.blackmarkettmit.shared.Contact;
+import hu.edudroid.blackmarkettmit.shared.LoginInfo;
 import hu.edudroid.blackmarkettmit.shared.PlayerState;
+import hu.edudroid.blackmarkettmit.shared.RecommandationRequest;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
@@ -28,12 +34,15 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 public class Blackmarkettmit implements EntryPoint, GetContactDialogListener, ClickHandler, TradeActionHandler {
 	private GetContactDialog getContactDialog;
 	private Button addContactButton;
-	private ArrayList<Contact> contactList;
+	private List<Contact> contactList;
 	private LoginInfo loginInfo;
-	private final ContactListService contactListService = GWT.create(ContactListService.class);
 	
 	private Anchor signInLink = new Anchor("Sign In");
 	private Anchor signOutLink = new Anchor("Sign Out");
+	private FlexTable actionTable;
+	private VerticalPanel historyPanel;
+	private List<RecommandationRequest> recommandationRequests = new ArrayList<RecommandationRequest>(); 
+	ContactRequestServiceAsync contactRequestsService = GWT.create(ContactRequestService.class);
 	
 	public void onModuleLoad() {
 		login();
@@ -51,12 +60,17 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener, Cl
 					public void onSuccess(LoginInfo result) {
 						loginInfo = result;
 						if (loginInfo.isLoggedIn()) {
-							initGame();
+							init();
 						} else {
 							loadLogin();
 						}
 					}
 				});
+	}
+	
+	private void init() {
+		getData();
+		initGamePanel();
 	}
 
 	private void loadLogin() {
@@ -68,20 +82,38 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener, Cl
 		RootPanel.get("appPanel").add(loginPanel);
 	}
 
-	private void initUsers() {
-		contactList = new ArrayList<Contact>();
-		for (int i = 0; i < 20; i++) {
-			contactList.add(new Contact(i, "Player " + i));
-		}
-		// Order contact list
-		java.util.Collections.sort(contactList, Contact.getComparator());
+	private void getData() {
+		contactRequestsService.getRecommandationRequests(new AsyncCallback<List<RecommandationRequest>>() {
+
+			@Override
+			public void onFailure(Throwable caught) {
+			}
+
+			@Override
+			public void onSuccess(List<RecommandationRequest> result) {
+				recommandationRequests = result;
+				updateHistory();
+			}
+		});
+		contactRequestsService.getContacts(new AsyncCallback<List<Contact>>() {
+			@Override
+			public void onFailure(Throwable caught) {
+			}
+			@Override
+			public void onSuccess(List<Contact> result) {
+				contactList = result;
+				updateContactTable();
+			}
+		});
 	}
  
-	private void initGame() {
+	private void initGamePanel() {
+		Label userNameLabel = new Label("Hello " + loginInfo.getNickname() + "!");
+		Label debugLabel = new Label("Key " + loginInfo.getBlackMarketUser().getUserKey() + " random " + loginInfo.getBlackMarketUser().getRandom());
 		signOutLink.setHref(loginInfo.getLogoutUrl());
-		initUsers();
+		
 		RootPanel appPanel = RootPanel.get("appPanel");
-		FlexTable actionTable = new FlexTable();
+		actionTable = new FlexTable();
 		actionTable.setWidget(0, 0, new Label("Player name"));
 		actionTable.setWidget(0, 1, new Label("Games"));
 		actionTable.setWidget(0, 2, new Label("Co-op"));
@@ -89,6 +121,47 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener, Cl
 		actionTable.setWidget(0, 4, new Label("I lost"));
 		actionTable.setWidget(0, 5, new Label("I won"));
 		actionTable.setWidget(0, 6, new Label("Action"));
+		historyPanel = new VerticalPanel();
+		addContactButton = new Button("Add new contact");
+		addContactButton.addClickHandler(this);
+		ScrollPanel actionTableScroll = new ScrollPanel(actionTable);
+		actionTableScroll.setHeight("400px");
+		ScrollPanel historyScroll = new ScrollPanel(historyPanel);
+		historyScroll.setHeight("400px");
+		HorizontalPanel horizontalPanel = new HorizontalPanel();
+		horizontalPanel.add(actionTableScroll);
+		horizontalPanel.add(historyScroll);
+		horizontalPanel.setHeight("400px");
+		appPanel.add(userNameLabel);
+		appPanel.add(debugLabel);
+		appPanel.add(signOutLink);
+		appPanel.add(horizontalPanel);
+		appPanel.add(addContactButton);
+	}
+
+	private void updateHistory() {
+		historyPanel.clear();
+		ArrayList<HistoryItem> history = new ArrayList<HistoryItem>();
+		for (RecommandationRequest recommandationRequest : recommandationRequests) {
+			history.add(new HistoryItem(recommandationRequest));
+		}
+		for (HistoryItem item : history) {
+			FlowPanel historyElement = new FlowPanel();
+			historyElement.add(new Label(item.toString()));
+			historyPanel.add(historyElement);
+		}
+	}
+
+	private void updateContactTable() {
+		// Clear table
+		while (actionTable.getRowCount() > 1) {
+			actionTable.removeRow(1);
+		}
+		// Order contact list
+		if (contactList == null) {
+			contactList = new ArrayList<Contact>();
+		}
+		java.util.Collections.sort(contactList, Contact.getComparator());
 		for (Contact player:contactList) {
 			int nextRow = actionTable.getRowCount();
 			actionTable.setWidget(nextRow, 0, new Label(player.getDisplayName()));
@@ -108,32 +181,20 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener, Cl
 				actionTable.setWidget(nextRow, 6, new InviteButton(player, this));
 			}
 		}
-		VerticalPanel historyPanel = new VerticalPanel();
-		for (int i = 0; i < 100; i++) {
-			FlowPanel historyElement = new FlowPanel();
-			historyElement.add(new Label("20 minutes ago - "));
-			historyElement.add(new Label("Player 4 asked a suggestion."));
-			historyElement.add(new SuggestButton(contactList.get(0)));
-			historyPanel.add(historyElement);
-		}
-		addContactButton = new Button("Add new contact");
-		addContactButton.addClickHandler(this);
-		ScrollPanel actionTableScroll = new ScrollPanel(actionTable);
-		actionTableScroll.setHeight("400px");
-		ScrollPanel historyScroll = new ScrollPanel(historyPanel);
-		historyScroll.setHeight("400px");
-		HorizontalPanel horizontalPanel = new HorizontalPanel();
-		horizontalPanel.add(actionTableScroll);
-		horizontalPanel.add(historyScroll);
-		horizontalPanel.setHeight("400px");
-		appPanel.add(signOutLink);
-		appPanel.add(horizontalPanel);
-		appPanel.add(addContactButton);
 	}
 
 	@Override
 	public void getRandom() {
-		getContactDialog.hide();
+		contactRequestsService.newRandomContact(new AsyncCallback<List<Contact>>() {
+			@Override
+			public void onFailure(Throwable caught) {
+			}
+			@Override
+			public void onSuccess(List<Contact> result) {
+				getData();
+				getContactDialog.hide();
+			}
+		});
 	}
 
 	@Override

@@ -1,0 +1,40 @@
+package hu.edudroid.blackmarkettmit.shared;
+
+import java.io.Serializable;
+
+public class BlackMarketUser implements Serializable{
+
+	private static final long serialVersionUID = -8822523082905084208L;
+	private String userKey;
+	private String externalId;
+	private float random;
+	
+	public BlackMarketUser() {
+		
+	}
+	public BlackMarketUser(String userKey, String externalId, float random) {
+		this.userKey = userKey;
+		this.externalId = externalId;
+		this.random = random;
+	}
+
+	public String getUserKey() {
+		return userKey;
+	}
+	public void setUserKey(String userKey) {
+		this.userKey = userKey;
+	}
+
+	public String getExternalId() {
+		return externalId;
+	}
+	public void setExternalId(String externalId) {
+		this.externalId = externalId;
+	}
+	public float getRandom() {
+		return random;
+	}
+	public void setRandom(float random) {
+		this.random = random;
+	}
+}

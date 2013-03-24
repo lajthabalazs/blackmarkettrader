@@ -18,6 +18,7 @@ import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Anchor;
 import com.google.gwt.user.client.ui.Button;
@@ -32,23 +33,25 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 /**
  * Entry point classes define <code>onModuleLoad()</code>.
  */
-public class Blackmarkettmit implements EntryPoint, GetContactDialogListener, ClickHandler, TradeActionHandler {
+public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
+		ClickHandler, TradeActionHandler {
 	private GetContactDialog getContactDialog;
 	private Button addContactButton;
 	private List<Contact> contactList;
 	private LoginInfo loginInfo;
-	
+
 	private Anchor signInLink = new Anchor("Sign In");
 	private Anchor signOutLink = new Anchor("Sign Out");
 	private FlexTable actionTable;
 	private VerticalPanel historyPanel;
-	private List<RecommandationRequest> recommandationRequests = new ArrayList<RecommandationRequest>(); 
-	ContactRequestServiceAsync contactRequestsService = GWT.create(ContactRequestService.class);
-	
+	private List<RecommandationRequest> recommandationRequests = new ArrayList<RecommandationRequest>();
+	ContactRequestServiceAsync contactRequestsService = GWT
+			.create(ContactRequestService.class);
+
 	public void onModuleLoad() {
 		login();
 	}
-	
+
 	private void login() {
 		// Check login status using login service.
 		LoginServiceAsync loginService = GWT.create(LoginService.class);
@@ -68,7 +71,7 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener, Cl
 					}
 				});
 	}
-	
+
 	private void init() {
 		getData();
 		initGamePanel();
@@ -78,28 +81,31 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener, Cl
 		// Assemble login panel.
 		signInLink.setHref(loginInfo.getLoginUrl());
 		VerticalPanel loginPanel = new VerticalPanel();
-		loginPanel.add(new Label("Please log in with you google account to play the game!"));
+		loginPanel.add(new Label(
+				"Please log in with you google account to play the game!"));
 		loginPanel.add(signInLink);
 		RootPanel.get("appPanel").add(loginPanel);
 	}
 
 	private void getData() {
-		contactRequestsService.getRecommandationRequests(new AsyncCallback<List<RecommandationRequest>>() {
+		contactRequestsService
+				.getRecommandationRequests(new AsyncCallback<List<RecommandationRequest>>() {
 
-			@Override
-			public void onFailure(Throwable caught) {
-			}
+					@Override
+					public void onFailure(Throwable caught) {
+					}
 
-			@Override
-			public void onSuccess(List<RecommandationRequest> result) {
-				recommandationRequests = result;
-				updateHistory();
-			}
-		});
+					@Override
+					public void onSuccess(List<RecommandationRequest> result) {
+						recommandationRequests = result;
+						updateHistory();
+					}
+				});
 		contactRequestsService.getContacts(new AsyncCallback<List<Contact>>() {
 			@Override
 			public void onFailure(Throwable caught) {
 			}
+
 			@Override
 			public void onSuccess(List<Contact> result) {
 				contactList = result;
@@ -107,12 +113,12 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener, Cl
 			}
 		});
 	}
- 
+
 	private void initGamePanel() {
-		Label userNameLabel = new Label("Hello " + loginInfo.getNickname() + "!");
-		Label debugLabel = new Label("Key " + loginInfo.getBlackMarketUser().getUserKey() + " random " + loginInfo.getBlackMarketUser().getRandom());
+		Label userNameLabel = new Label("Hello " + loginInfo.getNickname()
+				+ "!");
 		signOutLink.setHref(loginInfo.getLogoutUrl());
-		
+
 		RootPanel appPanel = RootPanel.get("appPanel");
 		actionTable = new FlexTable();
 		actionTable.setWidget(0, 0, new Label("Player name"));
@@ -134,7 +140,6 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener, Cl
 		horizontalPanel.add(historyScroll);
 		horizontalPanel.setHeight("400px");
 		appPanel.add(userNameLabel);
-		appPanel.add(debugLabel);
 		appPanel.add(signOutLink);
 		appPanel.add(horizontalPanel);
 		appPanel.add(addContactButton);
@@ -163,48 +168,68 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener, Cl
 			contactList = new ArrayList<Contact>();
 		}
 		java.util.Collections.sort(contactList, new ContactComparator());
-		for (Contact player:contactList) {
+		for (Contact player : contactList) {
 			int nextRow = actionTable.getRowCount();
 			if (player.getViewer() == 0) {
-				actionTable.setWidget(nextRow, 0, new Label(player.getSecondDisplayName()));
-				actionTable.setWidget(nextRow, 1, new Label(""+ player.getGameCount()));
-				actionTable.setWidget(nextRow, 2, new Label(""+ player.getCooperationCount()));
-				actionTable.setWidget(nextRow, 3, new Label(""+ player.getBothDefectCount()));
-				actionTable.setWidget(nextRow, 4, new Label(""+ player.getSecondDefectCount()));
-				actionTable.setWidget(nextRow, 5, new Label(""+ player.getFirstDefectCount()));
+				/*actionTable.setWidget(nextRow, 0,
+						new Label(player.getSecondDisplayName()));*/
+				actionTable.setWidget(nextRow, 0,
+						new Label(player.getSecondDebugDisplayName()));
+				actionTable.setWidget(nextRow, 1,
+						new Label("" + player.getGameCount()));
+				actionTable.setWidget(nextRow, 2,
+						new Label("" + player.getCooperationCount()));
+				actionTable.setWidget(nextRow, 3,
+						new Label("" + player.getBothDefectCount()));
+				actionTable.setWidget(nextRow, 4,
+						new Label("" + player.getSecondDefectCount()));
+				actionTable.setWidget(nextRow, 5,
+						new Label("" + player.getFirstDefectCount()));
 			} else {
-				actionTable.setWidget(nextRow, 0, new Label(player.getFirstDisplayName()));
-				actionTable.setWidget(nextRow, 1, new Label(""+ player.getGameCount()));
-				actionTable.setWidget(nextRow, 2, new Label(""+ player.getCooperationCount()));
-				actionTable.setWidget(nextRow, 3, new Label(""+ player.getBothDefectCount()));
-				actionTable.setWidget(nextRow, 4, new Label(""+ player.getFirstDefectCount()));
-				actionTable.setWidget(nextRow, 5, new Label(""+ player.getSecondDefectCount()));
+				/* actionTable.setWidget(nextRow, 0,
+						new Label(player.getFirstDisplayName()));*/
+				actionTable.setWidget(nextRow, 0,
+						new Label(player.getFirstDebugDisplayName()));
+				actionTable.setWidget(nextRow, 1,
+						new Label("" + player.getGameCount()));
+				actionTable.setWidget(nextRow, 2,
+						new Label("" + player.getCooperationCount()));
+				actionTable.setWidget(nextRow, 3,
+						new Label("" + player.getBothDefectCount()));
+				actionTable.setWidget(nextRow, 4,
+						new Label("" + player.getFirstDefectCount()));
+				actionTable.setWidget(nextRow, 5,
+						new Label("" + player.getSecondDefectCount()));
 			}
 			if (player.getState() == PlayerState.INVITED_HIM) {
-				actionTable.setWidget(nextRow, 6, new Label("Waiting response"));
+				actionTable
+						.setWidget(nextRow, 6, new Label("Waiting response"));
 			} else if (player.getState() == PlayerState.INVITED_ME) {
 				HorizontalPanel buttonHolder = new HorizontalPanel();
 				buttonHolder.add(new AcceptButton(player, this));
 				buttonHolder.add(new RejectButton(player, this));
 				actionTable.setWidget(nextRow, 6, buttonHolder);
 			} else {
-				actionTable.setWidget(nextRow, 6, new InviteButton(player, this));
+				actionTable.setWidget(nextRow, 6,
+						new InviteButton(player, this));
 			}
 		}
 	}
 
 	@Override
 	public void getRandom() {
-		contactRequestsService.newRandomContact(new AsyncCallback<List<Contact>>() {
-			@Override
-			public void onFailure(Throwable caught) {
-			}
-			@Override
-			public void onSuccess(List<Contact> result) {
-				getData();
-				getContactDialog.hide();
-			}
-		});
+		contactRequestsService
+				.newRandomContact(new AsyncCallback<List<Contact>>() {
+					@Override
+					public void onFailure(Throwable caught) {
+					}
+
+					@Override
+					public void onSuccess(List<Contact> result) {
+						getData();
+						getContactDialog.hide();
+					}
+				});
 	}
 
 	@Override
@@ -221,13 +246,50 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener, Cl
 
 	@Override
 	public void cooperate(Contact player) {
+		play(player, Contact.CHOICE_COOPERATE);
 	}
 
 	@Override
 	public void screw(Contact player) {
+		play(player, Contact.CHOICE_DEFECT);
 	}
 
 	@Override
 	public void reject(Contact player) {
+		play(player, Contact.CHOICE_REJECT);
+	}
+
+	private void play(Contact player, int choice) {
+		String otherPlayer;
+		if (player.getViewer() == 0) {
+			otherPlayer = player.getSecondPlayerKey();
+		} else {
+			otherPlayer = player.getFirstPlayerKey();
+		}
+		contactRequestsService.play(
+				loginInfo.getBlackMarketUser().getUserKey(), otherPlayer,
+				choice, new AsyncCallback<Integer>() {
+
+					@Override
+					public void onSuccess(Integer result) {
+						delayedUpdate();
+					}
+
+					@Override
+					public void onFailure(Throwable caught) {
+					}
+				});
+
+	}
+	
+	private void delayedUpdate() {
+		Timer t = new Timer() {
+			public void run() {
+				getData();
+			}
+		};
+
+		// delay running for 2 seconds
+		t.schedule(2000);
 	}
 }

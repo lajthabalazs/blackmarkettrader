@@ -1,17 +1,35 @@
 package hu.edudroid.blackmarkettmit.shared;
 
 import java.io.Serializable;
+import java.util.Date;
 
 import hu.edudroid.blackmarkettmit.shared.PlayerState;
 
 public class Contact implements Serializable{
 
 	private static final long serialVersionUID = 3488387526075082543L;
+	public static final int CHOICE_COOPERATE = 0;
+	public static final int CHOICE_DEFECT = 1;
+	public static final int CHOICE_REJECT = -1;
+	public static final int CHOICE_NONE = -2;
+
+	private String entityKey;
+	
 	private int viewer;
+	// Active game
+	private int inGame;
+	private int whoStarted;
+	private int firstPlayerChoice;
+	private int secondPlayerChoice;
+	private Date gameStart;
+	// Credentials
 	private String firstPlayerKey;
 	private String secondPlayerKey;
 	private String firstDisplayName;
 	private String secondDisplayName;
+	private String firstDebugDisplayName;
+	private String secondDebugDisplayName;
+	// Statistics
 	private int gameCount = 0;
 	private int cooperationCount = 0;
 	private int bothDefectCount = 0;
@@ -20,12 +38,60 @@ public class Contact implements Serializable{
 	
 	private PlayerState state = PlayerState.NEW; // State is not persisted, it is calculated from events and stats
 	
+	public String getEntityKey() {
+		return entityKey;
+	}
+
+	public void setEntityKey(String entityKey) {
+		this.entityKey = entityKey;
+	}
+
 	public int getViewer() {
 		return viewer;
 	}
 
 	public void setViewer(int viewer) {
 		this.viewer = viewer;
+	}
+
+	public int getInGame() {
+		return inGame;
+	}
+
+	public void setInGame(int inGame) {
+		this.inGame = inGame;
+	}
+
+	public int getWhoStarted() {
+		return whoStarted;
+	}
+
+	public void setWhoStarted(int whoStarted) {
+		this.whoStarted = whoStarted;
+	}
+
+	public int getFirstPlayerChoice() {
+		return firstPlayerChoice;
+	}
+
+	public void setFirstPlayerChoice(int firstPlayerChoice) {
+		this.firstPlayerChoice = firstPlayerChoice;
+	}
+
+	public int getSecondPlayerChoice() {
+		return secondPlayerChoice;
+	}
+
+	public void setSecondPlayerChoice(int secondPlayerChoice) {
+		this.secondPlayerChoice = secondPlayerChoice;
+	}
+
+	public Date getGameStart() {
+		return gameStart;
+	}
+
+	public void setGameStart(Date gameStart) {
+		this.gameStart = gameStart;
 	}
 
 	public String getFirstPlayerKey() {
@@ -58,6 +124,22 @@ public class Contact implements Serializable{
 
 	public void setSecondDisplayName(String secondDisplayName) {
 		this.secondDisplayName = secondDisplayName;
+	}
+
+	public String getFirstDebugDisplayName() {
+		return firstDebugDisplayName;
+	}
+
+	public void setFirstDebugDisplayName(String firstDebugDisplayName) {
+		this.firstDebugDisplayName = firstDebugDisplayName;
+	}
+
+	public String getSecondDebugDisplayName() {
+		return secondDebugDisplayName;
+	}
+
+	public void setSecondDebugDisplayName(String secondDebugDisplayName) {
+		this.secondDebugDisplayName = secondDebugDisplayName;
 	}
 
 	public int getGameCount() {

@@ -12,4 +12,5 @@ public interface ContactRequestServiceAsync {
 	void getRecommandationRequests(AsyncCallback<List<RecommandationRequest>> callback);
 	void getContacts(AsyncCallback<List<Contact>> callback);
 	void newRandomContact(AsyncCallback<List<Contact>> callback);
+	void play(String playerId, String otherPlayerId, int choice, AsyncCallback<Integer> callback);
 }

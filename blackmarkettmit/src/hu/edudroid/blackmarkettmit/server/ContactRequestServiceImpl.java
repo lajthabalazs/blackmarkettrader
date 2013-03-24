@@ -88,4 +88,85 @@ public class ContactRequestServiceImpl  extends RemoteServiceServlet implements 
 			return null;
 		}
 	}
+
+	@Override
+	public Integer play(String playerId, String otherPlayerId, int choice) throws NotLoggedInException {
+		System.out.println("Play");
+		System.out.println("First:     " + playerId);
+		System.out.println("Second:    " + otherPlayerId);
+		System.out.println("Choice:    " + choice);
+		Contact contact = ContactUtils.getContactForUsers(playerId, otherPlayerId);
+		if (contact == null) {
+			System.out.println("No player.");
+			return PLAY_RESULT_DECLINED;
+		}
+		System.out.println("Viewer:    " + contact.getViewer());
+		if ((choice != Contact.CHOICE_COOPERATE) && (choice != Contact.CHOICE_DEFECT) && (choice != Contact.CHOICE_REJECT)) {
+			return PLAY_RESULT_DECLINED;
+		}
+		if (choice == Contact.CHOICE_REJECT) {
+			contact.setInGame(0);
+			contact.setWhoStarted(-1);
+			ContactUtils.save(contact);
+			return PLAY_RESULT_ACCEPTED;
+		}
+		if (contact.getInGame() == 0) {
+			// New game
+			contact.setInGame(1);
+			contact.setGameStart(new Date());
+			int viewer = contact.getViewer();
+			if (viewer == 0) {
+				contact.setWhoStarted(0);
+				contact.setFirstPlayerChoice(choice);
+			} else {
+				contact.setWhoStarted(1);
+				contact.setSecondPlayerChoice(choice);
+			}
+			ContactUtils.save(contact);
+			return 0;
+		} else {
+			if (contact.getWhoStarted() == contact.getViewer()) {
+				return PLAY_RESULT_DECLINED;
+			}
+			// Old game
+			contact.setInGame(0);
+			int viewer = contact.getViewer();
+			if (viewer == 0) {
+				contact.setFirstPlayerChoice(choice);
+			} else {
+				contact.setSecondPlayerChoice(choice);
+			}
+			// Evaluate result
+			contact.setGameCount(contact.getGameCount() + 1);
+			if (contact.getFirstPlayerChoice() == Contact.CHOICE_COOPERATE) {
+				if (contact.getSecondPlayerChoice() == Contact.CHOICE_COOPERATE) {
+					contact.setCooperationCount(contact.getCooperationCount() + 1);
+					ContactUtils.save(contact);
+					return PLAY_RESULT_COOPERATE;
+				}else {
+					contact.setSecondDefectCount(contact.getSecondDefectCount() + 1);
+					ContactUtils.save(contact);
+					if (viewer == 0) {
+						return PLAY_RESULT_HE_DEFECTED;
+					} else {
+						return PLAY_RESULT_I_DEFECTED;
+					}
+				}
+			} else {
+				if (contact.getSecondPlayerChoice() == Contact.CHOICE_COOPERATE) {
+					contact.setFirstDefectCount(contact.getFirstDefectCount() + 1);
+					ContactUtils.save(contact);
+					if (viewer == 0) {
+						return PLAY_RESULT_I_DEFECTED;
+					} else {
+						return PLAY_RESULT_HE_DEFECTED;
+					}
+				}else {
+					contact.setBothDefectCount(contact.getBothDefectCount() + 1);
+					ContactUtils.save(contact);
+					return PLAY_RESULT_BOTH_DEFECTED;
+				}
+			}
+		}
+	}
 }

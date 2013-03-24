@@ -11,7 +11,15 @@ import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 
 @RemoteServiceRelativePath("contactRequest")
 public interface ContactRequestService extends RemoteService {
+	public static final int PLAY_RESULT_DECLINED = -1;
+	public static final int PLAY_RESULT_ACCEPTED = 0;
+	public static final int PLAY_RESULT_COOPERATE = 1;
+	public static final int PLAY_RESULT_HE_DEFECTED = 2;
+	public static final int PLAY_RESULT_I_DEFECTED = 3;
+	public static final int PLAY_RESULT_BOTH_DEFECTED = 4;
+	
 	public List<RecommandationRequest> getRecommandationRequests() throws NotLoggedInException;
 	public List<Contact> getContacts() throws NotLoggedInException;
 	public List<Contact> newRandomContact() throws NotLoggedInException;
+	public Integer play(String playerId, String otherPlayerId, int choice) throws NotLoggedInException;
 }

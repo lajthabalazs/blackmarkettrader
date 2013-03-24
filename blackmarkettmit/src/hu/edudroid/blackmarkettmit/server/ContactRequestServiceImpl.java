@@ -2,6 +2,7 @@ package hu.edudroid.blackmarkettmit.server;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 
 import hu.edudroid.blackmarkettmit.client.NotLoggedInException;
@@ -179,16 +180,62 @@ public class ContactRequestServiceImpl  extends RemoteServiceServlet implements 
 		}
 		ContactUtils.save(contact);
 	}
+
+	@Override
+	public List<Contact> getAlligibleContacts(String otherPlayerId) throws NotLoggedInException {
+		BlackMarketUser blackMarketUser = UserManager.getCurrentUser();
+		if (blackMarketUser == null) {
+			throw new NotLoggedInException();
+		}
+		String playerId = blackMarketUser.getUserKey();
+		HashSet<String> alreadyContacts = new HashSet<String>();
+		List<Contact> allegibleContacts = new ArrayList<Contact>();
+		List<Contact> othersContacts = ContactUtils.getContactsForUser(otherPlayerId);
+		List<Contact> contacts = ContactUtils.getContactsForUser(playerId);
+		for (Contact contact : othersContacts) {
+			if (contact.getViewer() == 0) {
+				alreadyContacts.add(contact.getSecondPlayerKey());
+			} else {
+				alreadyContacts.add(contact.getFirstPlayerKey());
+			}
+		}
+		alreadyContacts.add(playerId);
+		alreadyContacts.add(otherPlayerId);
+		for (Contact contact : contacts) {
+			if (contact.getViewer() == 0) {
+				if (!alreadyContacts.contains(contact.getSecondPlayerKey())) {
+					allegibleContacts.add(contact);
+				}
+			} else {
+				if (!alreadyContacts.contains(contact.getFirstPlayerKey())) {
+					allegibleContacts.add(contact);
+				}
+			}
+		}
+		return allegibleContacts;
+	}
+
+	@Override
+	public void suggestContact(String otherPlayerId, String suggestedPlayerId) throws NotLoggedInException {
+		BlackMarketUser blackMarketUser = UserManager.getCurrentUser();
+		if (blackMarketUser == null) {
+			throw new NotLoggedInException();
+		}
+		String playerId = blackMarketUser.getUserKey();
+		Contact playerOtherPlayer = ContactUtils.getContactForUsers(playerId, otherPlayerId);
+		Contact playerSuggestedPlayer = ContactUtils.getContactForUsers(playerId, suggestedPlayerId);
+		Contact otherSuggestedPlayer = ContactUtils.getContactForUsers(otherPlayerId, suggestedPlayerId);
+		if (playerOtherPlayer != null && playerSuggestedPlayer != null && otherSuggestedPlayer == null) {
+			BlackMarketUser otherUser = BlackMarketUserUtils.getUserByKey(otherPlayerId);
+			BlackMarketUser suggestedUser = BlackMarketUserUtils.getUserByKey(suggestedPlayerId);
+			Contact newContact = ContactUtils.createContact(otherUser, suggestedUser);
+			ContactUtils.save(newContact);	
+			if (playerOtherPlayer.getViewer() == 0) {
+				playerOtherPlayer.setSecondPlayerRequestsRecommandation(null);
+			} else {
+				playerOtherPlayer.setFirstPlayerRequestsRecommandation(null);
+			}
+			ContactUtils.save(playerOtherPlayer);
+		}
+	}
 }
-
-
-
-
-
-
-
-
-
-
-
-

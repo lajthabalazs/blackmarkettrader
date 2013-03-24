@@ -97,6 +97,9 @@ public class ContactUtils {
 		entity.setProperty("firstDebugDisplayName", contact.getFirstDebugDisplayName());
 		entity.setProperty("secondDebugDisplayName", contact.getSecondDebugDisplayName());
 
+		entity.setProperty("firstPlayerRequestsRecommandation",contact.getFirstPlayerRequestsRecommandation());
+		entity.setProperty("secondPlayerRequestsRecommandation",contact.getSecondPlayerRequestsRecommandation());
+
 		entity.setProperty("gameCount", contact.getGameCount());
 		entity.setProperty("cooperationCount", contact.getCooperationCount());
 		entity.setProperty("bothDefectCount", contact.getBothDefectCount());
@@ -141,6 +144,17 @@ public class ContactUtils {
 		contact.setFirstDebugDisplayName((String)result.getProperty("firstDebugDisplayName"));
 		contact.setSecondDebugDisplayName((String)result.getProperty("secondDebugDisplayName"));
 		
+		if (result.hasProperty("firstPlayerRequestsRecommandation")) {
+			contact.setFirstPlayerRequestsRecommandation((Date)result.getProperty("firstPlayerRequestsRecommandation"));
+		} else {
+			contact.setFirstPlayerRequestsRecommandation(null);
+		}
+		if (result.hasProperty("secondPlayerRequestsRecommandation")) {
+			contact.setSecondPlayerRequestsRecommandation((Date)result.getProperty("secondPlayerRequestsRecommandation"));
+		} else {
+			contact.setSecondPlayerRequestsRecommandation(null);
+		}
+
 		contact.setGameCount((int)((Long)result.getProperty("gameCount")).longValue());
 		contact.setCooperationCount((int)((Long)result.getProperty("cooperationCount")).longValue());
 		contact.setBothDefectCount((int)((Long)result.getProperty("bothDefectCount")).longValue());

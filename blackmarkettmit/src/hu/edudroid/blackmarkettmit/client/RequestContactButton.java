@@ -20,7 +20,7 @@ public class RequestContactButton extends Button implements ClickHandler {
 	}
 
 	@Override
-	public void onClick(ClickEvent event) {
+	public void onClick(ClickEvent event) {		
 		listener.requestContactFromPlayer(contact);
 	}
 }

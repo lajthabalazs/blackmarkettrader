@@ -3,6 +3,7 @@ package hu.edudroid.blackmarkettmit.server;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
@@ -30,6 +31,18 @@ public class BlackMarketUserUtils {
 		}
 		return null;
 	}
+	
+	public static BlackMarketUser getUserByKey(String userKey) {
+		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+		try {
+			Entity entity = datastore.get(KeyFactory.stringToKey(userKey));
+			return createFromEntity(entity);
+		} catch (EntityNotFoundException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
 	
 	public static BlackMarketUser getRandomUser() {
 		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();

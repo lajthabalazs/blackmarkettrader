@@ -21,4 +21,6 @@ public interface ContactRequestService extends RemoteService {
 	public List<Contact> getContacts() throws NotLoggedInException;
 	public List<Contact> newRandomContact() throws NotLoggedInException;
 	public Integer play(String otherPlayerId, int choice) throws NotLoggedInException;
+	public List<Contact> getAlligibleContacts(String otherPlayerId)  throws NotLoggedInException;
+	public void suggestContact(String otherPlayerId, String suggestedPlayerId)  throws NotLoggedInException;
 }

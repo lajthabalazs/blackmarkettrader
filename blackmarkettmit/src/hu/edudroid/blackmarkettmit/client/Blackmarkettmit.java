@@ -32,7 +32,7 @@ import com.google.gwt.user.client.ui.VerticalPanel;
  * Entry point classes define <code>onModuleLoad()</code>.
  */
 public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
-		ClickHandler, TradeActionHandler {
+		ClickHandler, TradeActionHandler, SuggestListener {
 	private GetContactDialog getContactDialog;
 	private Button addContactButton;
 	private List<Contact> contactList;
@@ -41,9 +41,10 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 	private Anchor signInLink = new Anchor("Sign In");
 	private Anchor signOutLink = new Anchor("Sign Out");
 	private FlexTable actionTable;
-	private VerticalPanel historyPanel;
+	private VerticalPanel requestPanel;
 	ContactRequestServiceAsync contactRequestsService = GWT
 			.create(ContactRequestService.class);
+	private SuggestDialog suggestDialog;
 
 	public void onModuleLoad() {
 		login();
@@ -94,6 +95,7 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 			public void onSuccess(List<Contact> result) {
 				contactList = result;
 				updateContactTable();
+				updateRequestsPanel();
 			}
 		});
 	}
@@ -112,12 +114,12 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 		actionTable.setWidget(0, 4, new Label("I lost"));
 		actionTable.setWidget(0, 5, new Label("I won"));
 		actionTable.setWidget(0, 6, new Label("Action"));
-		historyPanel = new VerticalPanel();
+		requestPanel = new VerticalPanel();
 		addContactButton = new Button("Add new contact");
 		addContactButton.addClickHandler(this);
 		ScrollPanel actionTableScroll = new ScrollPanel(actionTable);
 		actionTableScroll.setHeight("400px");
-		ScrollPanel historyScroll = new ScrollPanel(historyPanel);
+		ScrollPanel historyScroll = new ScrollPanel(requestPanel);
 		historyScroll.setHeight("400px");
 		HorizontalPanel horizontalPanel = new HorizontalPanel();
 		horizontalPanel.add(actionTableScroll);
@@ -186,6 +188,28 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 			}
 		}
 	}
+	
+	protected void updateRequestsPanel() {
+		requestPanel.clear();
+		int count = 0;
+		for (Contact contact : contactList) {
+			if (contact.getViewer() == 0) {
+				if (contact.getSecondPlayerRequestsRecommandation() != null) {
+					requestPanel.add(new SuggestPanel(contact, this));
+					count ++;
+				}
+			} else {
+				if (contact.getFirstPlayerRequestsRecommandation() != null) {
+					requestPanel.add(new SuggestPanel(contact, this));
+					count ++;
+				}
+			}
+		}
+		if (count == 0) {
+			requestPanel.add(new Label("Noone is asking for contacts."));
+		}
+	}
+
 
 	@Override
 	public void onClick(ClickEvent event) {
@@ -211,7 +235,13 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 
 	@Override
 	public void requestContactFromPlayer(Contact player) {
-		contactRequestsService.askForRecommandation(player.getEntityKey(), new AsyncCallback<Void>() {
+		String playerKey;
+		if (player.getViewer() == 0) {
+			playerKey = player.getSecondPlayerKey();
+		} else {
+			playerKey = player.getFirstPlayerKey();
+		}
+		contactRequestsService.askForRecommandation(playerKey, new AsyncCallback<Void>() {
 			
 			@Override
 			public void onSuccess(Void nothing) {
@@ -259,7 +289,6 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 			public void onFailure(Throwable caught) {
 			}
 		});
-
 	}
 	
 	private void delayedUpdate() {
@@ -271,5 +300,57 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 
 		// delay running for 2 seconds
 		t.schedule(2000);
+	}
+
+	@Override
+	public void userWantsToSuggestForContact(final Contact contact) {
+		String otherPlayer;
+		if (contact.getViewer() == 0) {
+			otherPlayer = contact.getSecondPlayerKey();
+		} else {
+			otherPlayer = contact.getFirstPlayerKey();
+		}
+		contactRequestsService.getAlligibleContacts(otherPlayer, new AsyncCallback<List<Contact>>() {
+			
+			@Override
+			public void onSuccess(List<Contact> result) {
+				showSuggestDialog(contact, result);
+			}
+			
+			@Override
+			public void onFailure(Throwable caught) {
+			}
+		});
+	}
+	
+	private void showSuggestDialog(Contact contact, List<Contact> result) {
+		suggestDialog = new SuggestDialog(contact, result, this);
+	}
+
+	@Override
+	public void userSuggestedContactForContact(Contact contact, Contact suggestedContact) {
+		String otherPlayer = null;
+		String suggestedPlayer = null;
+		if (contact.getViewer() == 0) {
+			otherPlayer = contact.getSecondPlayerKey();
+		} else {
+			otherPlayer = contact.getFirstPlayerKey();
+		}
+		if (suggestedContact.getViewer() == 0) {
+			suggestedPlayer = suggestedContact.getSecondPlayerKey();
+		} else {
+			suggestedPlayer = suggestedContact.getFirstPlayerKey();
+		}
+		contactRequestsService.suggestContact(otherPlayer, suggestedPlayer, new AsyncCallback<Void>() {			
+			@Override
+			public void onSuccess(Void result) {
+				getData();
+			}
+			
+			@Override
+			public void onFailure(Throwable caught) {
+			}
+		});
+		suggestDialog.hide();
 	}
 }

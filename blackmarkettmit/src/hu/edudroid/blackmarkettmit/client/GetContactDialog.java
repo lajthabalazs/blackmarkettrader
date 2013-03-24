@@ -29,7 +29,7 @@ public class GetContactDialog extends DialogBox implements ClickHandler {
 		if (players!=null) {
 			for (int i = 0; i < players.size(); i++) {
 				if (players.get(i).getViewer() == 0) {
-					table.setWidget(i, 0, new Label(players.get(i).getSecondDisplayName()));
+					table.setWidget(i, 0, new Label(players.get(i).getSecondDebugDisplayName()));
 					if (players.get(i).getFirstPlayerRequestsRecommandation() == null) {
 						Button requestContactButton = new RequestContactButton(players.get(i), listener);
 						table.setWidget(i, 1, requestContactButton);
@@ -37,7 +37,7 @@ public class GetContactDialog extends DialogBox implements ClickHandler {
 						table.setWidget(i, 1, new Label("Already requested"));
 					}
 				} else {
-					table.setWidget(i, 0, new Label(players.get(i).getFirstDisplayName()));
+					table.setWidget(i, 0, new Label(players.get(i).getFirstDebugDisplayName()));
 					if (players.get(i).getSecondPlayerRequestsRecommandation() == null) {
 						Button requestContactButton = new RequestContactButton(players.get(i), listener);
 						table.setWidget(i, 1, requestContactButton);

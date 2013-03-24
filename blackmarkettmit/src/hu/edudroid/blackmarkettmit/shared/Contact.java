@@ -29,6 +29,9 @@ public class Contact implements Serializable{
 	private String secondDisplayName;
 	private String firstDebugDisplayName;
 	private String secondDebugDisplayName;
+	// Recommendation requests
+	private Date firstPlayerRequestsRecommandation;
+	private Date secondPlayerRequestsRecommandation;
 	// Statistics
 	private int gameCount = 0;
 	private int cooperationCount = 0;
@@ -36,7 +39,7 @@ public class Contact implements Serializable{
 	private int firstDefectCount = 0;
 	private int secondDefectCount = 0;
 	
-	private PlayerState state = PlayerState.NEW; // State is not persisted, it is calculated from events and stats
+	private PlayerState state = PlayerState.NEW; // State is not persisted, it is calculated from events and statistics
 	
 	public String getEntityKey() {
 		return entityKey;
@@ -140,6 +143,24 @@ public class Contact implements Serializable{
 
 	public void setSecondDebugDisplayName(String secondDebugDisplayName) {
 		this.secondDebugDisplayName = secondDebugDisplayName;
+	}
+
+	public Date getFirstPlayerRequestsRecommandation() {
+		return firstPlayerRequestsRecommandation;
+	}
+
+	public void setFirstPlayerRequestsRecommandation(
+			Date firstPlayerRequestsRecommandation) {
+		this.firstPlayerRequestsRecommandation = firstPlayerRequestsRecommandation;
+	}
+
+	public Date getSecondPlayerRequestsRecommandation() {
+		return secondPlayerRequestsRecommandation;
+	}
+
+	public void setSecondPlayerRequestsRecommandation(
+			Date secondPlayerRequestsRecommandation) {
+		this.secondPlayerRequestsRecommandation = secondPlayerRequestsRecommandation;
 	}
 
 	public int getGameCount() {

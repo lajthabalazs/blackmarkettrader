@@ -9,6 +9,4 @@ public class SuggestButton extends Button {
 	public SuggestButton(Contact player) {
 		super("Suggest");
 	}
-	
-
 }

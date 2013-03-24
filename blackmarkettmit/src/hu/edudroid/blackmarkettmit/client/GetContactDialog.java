@@ -2,7 +2,6 @@ package hu.edudroid.blackmarkettmit.client;
 
 import hu.edudroid.blackmarkettmit.shared.Contact;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -18,15 +17,12 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 
 public class GetContactDialog extends DialogBox implements ClickHandler {
 
-	ArrayList<Button> requestContactButtons = new ArrayList<Button>();
 	Button cancelButton;
 	Button randomButton;
 	private GetContactDialogListener listener;
-	private List<Contact> players;
 	
 	public GetContactDialog(List<Contact> players, GetContactDialogListener listener) {
 		this.listener = listener;
-		this.players = players;
 		setText("Get a new contact");
 		VerticalPanel mainPanel = new VerticalPanel();
 		FlexTable table = new FlexTable();
@@ -34,13 +30,21 @@ public class GetContactDialog extends DialogBox implements ClickHandler {
 			for (int i = 0; i < players.size(); i++) {
 				if (players.get(i).getViewer() == 0) {
 					table.setWidget(i, 0, new Label(players.get(i).getSecondDisplayName()));
+					if (players.get(i).getFirstPlayerRequestsRecommandation() == null) {
+						Button requestContactButton = new RequestContactButton(players.get(i), listener);
+						table.setWidget(i, 1, requestContactButton);
+					} else {
+						table.setWidget(i, 1, new Label("Already requested"));
+					}
 				} else {
 					table.setWidget(i, 0, new Label(players.get(i).getFirstDisplayName()));
+					if (players.get(i).getSecondPlayerRequestsRecommandation() == null) {
+						Button requestContactButton = new RequestContactButton(players.get(i), listener);
+						table.setWidget(i, 1, requestContactButton);
+					} else {
+						table.setWidget(i, 1, new Label("Already requested"));
+					}
 				}
-				Button requestContactButton = new Button("Request contact");
-				requestContactButtons.add(requestContactButton);
-				requestContactButton.addClickHandler(this);
-				table.setWidget(i, 1, requestContactButton);
 				table.getCellFormatter().setAlignment(i, 1,  HasHorizontalAlignment.ALIGN_RIGHT, HasVerticalAlignment.ALIGN_TOP);
 			}
 		}
@@ -63,12 +67,8 @@ public class GetContactDialog extends DialogBox implements ClickHandler {
 		if (event.getSource().equals(randomButton)) {
 			listener.getRandom();
 		} else {
-			int index = requestContactButtons.indexOf(event.getSource());
-			if (index != -1) {
-				listener.requestContactFromPlayer(players.get(index));
-			}
+			this.hide();
 		}
-		this.hide();
 	}
 
 	public interface GetContactDialogListener {

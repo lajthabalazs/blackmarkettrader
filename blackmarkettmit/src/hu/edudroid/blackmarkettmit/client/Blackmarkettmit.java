@@ -9,7 +9,6 @@ import hu.edudroid.blackmarkettmit.shared.Contact;
 import hu.edudroid.blackmarkettmit.shared.ContactComparator;
 import hu.edudroid.blackmarkettmit.shared.LoginInfo;
 import hu.edudroid.blackmarkettmit.shared.PlayerState;
-import hu.edudroid.blackmarkettmit.shared.RecommandationRequest;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +22,6 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Anchor;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.FlexTable;
-import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.RootPanel;
@@ -44,7 +42,6 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 	private Anchor signOutLink = new Anchor("Sign Out");
 	private FlexTable actionTable;
 	private VerticalPanel historyPanel;
-	private List<RecommandationRequest> recommandationRequests = new ArrayList<RecommandationRequest>();
 	ContactRequestServiceAsync contactRequestsService = GWT
 			.create(ContactRequestService.class);
 
@@ -88,19 +85,6 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 	}
 
 	private void getData() {
-		contactRequestsService
-				.getRecommandationRequests(new AsyncCallback<List<RecommandationRequest>>() {
-
-					@Override
-					public void onFailure(Throwable caught) {
-					}
-
-					@Override
-					public void onSuccess(List<RecommandationRequest> result) {
-						recommandationRequests = result;
-						updateHistory();
-					}
-				});
 		contactRequestsService.getContacts(new AsyncCallback<List<Contact>>() {
 			@Override
 			public void onFailure(Throwable caught) {
@@ -143,19 +127,6 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 		appPanel.add(signOutLink);
 		appPanel.add(horizontalPanel);
 		appPanel.add(addContactButton);
-	}
-
-	private void updateHistory() {
-		historyPanel.clear();
-		ArrayList<HistoryItem> history = new ArrayList<HistoryItem>();
-		for (RecommandationRequest recommandationRequest : recommandationRequests) {
-			history.add(new HistoryItem(recommandationRequest));
-		}
-		for (HistoryItem item : history) {
-			FlowPanel historyElement = new FlowPanel();
-			historyElement.add(new Label(item.toString()));
-			historyPanel.add(historyElement);
-		}
 	}
 
 	private void updateContactTable() {
@@ -217,33 +188,44 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 	}
 
 	@Override
-	public void getRandom() {
-		contactRequestsService
-				.newRandomContact(new AsyncCallback<List<Contact>>() {
-					@Override
-					public void onFailure(Throwable caught) {
-					}
-
-					@Override
-					public void onSuccess(List<Contact> result) {
-						getData();
-						getContactDialog.hide();
-					}
-				});
-	}
-
-	@Override
-	public void requestContactFromPlayer(Contact player) {
-		getContactDialog.hide();
-	}
-
-	@Override
 	public void onClick(ClickEvent event) {
 		if (event.getSource().equals(addContactButton)) {
 			getContactDialog = new GetContactDialog(contactList, this);
 		}
 	}
 
+	@Override
+	public void getRandom() {
+		contactRequestsService.newRandomContact(new AsyncCallback<List<Contact>>() {
+			@Override
+			public void onFailure(Throwable caught) {
+			}
+
+			@Override
+			public void onSuccess(List<Contact> result) {
+				getData();
+				getContactDialog.hide();
+			}
+		});
+	}
+
+	@Override
+	public void requestContactFromPlayer(Contact player) {
+		contactRequestsService.askForRecommandation(player.getEntityKey(), new AsyncCallback<Void>() {
+			
+			@Override
+			public void onSuccess(Void nothing) {
+				getData();
+				getContactDialog.hide();
+			}
+			
+			@Override
+			public void onFailure(Throwable caught) {
+				
+			}
+		});
+	}
+	
 	@Override
 	public void cooperate(Contact player) {
 		play(player, Contact.CHOICE_COOPERATE);
@@ -266,19 +248,17 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 		} else {
 			otherPlayer = player.getFirstPlayerKey();
 		}
-		contactRequestsService.play(
-				loginInfo.getBlackMarketUser().getUserKey(), otherPlayer,
-				choice, new AsyncCallback<Integer>() {
+		contactRequestsService.play(otherPlayer, choice, new AsyncCallback<Integer>() {
 
-					@Override
-					public void onSuccess(Integer result) {
-						delayedUpdate();
-					}
+			@Override
+			public void onSuccess(Integer result) {
+				delayedUpdate();
+			}
 
-					@Override
-					public void onFailure(Throwable caught) {
-					}
-				});
+			@Override
+			public void onFailure(Throwable caught) {
+			}
+		});
 
 	}
 	

@@ -8,26 +8,12 @@ import hu.edudroid.blackmarkettmit.client.NotLoggedInException;
 import hu.edudroid.blackmarkettmit.client.services.ContactRequestService;
 import hu.edudroid.blackmarkettmit.shared.BlackMarketUser;
 import hu.edudroid.blackmarkettmit.shared.Contact;
-import hu.edudroid.blackmarkettmit.shared.RecommandationRequest;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 
 public class ContactRequestServiceImpl  extends RemoteServiceServlet implements ContactRequestService{
 
 	private static final long serialVersionUID = 2355080806520903322L;
-
-	@Override
-	public List<RecommandationRequest> getRecommandationRequests() throws NotLoggedInException{
-		List<RecommandationRequest> recommandations = new ArrayList<RecommandationRequest>();
-		for (int i = 0; i < 20; i++) {
-			RecommandationRequest recommandation = new RecommandationRequest();
-			recommandation.setText("Recommandation " + i);
-			recommandation.setRequestDate(new Date());
-			recommandation.setAnswered(false);
-			recommandations.add(recommandation);
-		}
-		return recommandations;
-	}
 
 	@Override
 	public List<Contact> newRandomContact() throws NotLoggedInException {
@@ -90,7 +76,12 @@ public class ContactRequestServiceImpl  extends RemoteServiceServlet implements 
 	}
 
 	@Override
-	public Integer play(String playerId, String otherPlayerId, int choice) throws NotLoggedInException {
+	public Integer play(String otherPlayerId, int choice) throws NotLoggedInException {
+		BlackMarketUser blackMarketUser = UserManager.getCurrentUser();
+		if (blackMarketUser == null) {
+			throw new NotLoggedInException();
+		}
+		String playerId = blackMarketUser.getUserKey();
 		System.out.println("Play");
 		System.out.println("First:     " + playerId);
 		System.out.println("Second:    " + otherPlayerId);
@@ -169,4 +160,35 @@ public class ContactRequestServiceImpl  extends RemoteServiceServlet implements 
 			}
 		}
 	}
+
+	@Override
+	public void askForRecommandation(String otherPlayerId) throws NotLoggedInException {
+		BlackMarketUser blackMarketUser = UserManager.getCurrentUser();
+		if (blackMarketUser == null) {
+			throw new NotLoggedInException();
+		}
+		String playerId = blackMarketUser.getUserKey();
+		System.out.println("Ask for recommandation");
+		System.out.println("Asker:     " + playerId);
+		System.out.println("Asked:     " + otherPlayerId);
+		Contact contact = ContactUtils.getContactForUsers(playerId, otherPlayerId);
+		if (contact.getViewer()==0) {
+			contact.setFirstPlayerRequestsRecommandation(new Date());
+		} else {
+			contact.setSecondPlayerRequestsRecommandation(new Date());
+		}
+		ContactUtils.save(contact);
+	}
 }
+
+
+
+
+
+
+
+
+
+
+
+

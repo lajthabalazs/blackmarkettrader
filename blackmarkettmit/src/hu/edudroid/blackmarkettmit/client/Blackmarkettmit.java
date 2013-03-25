@@ -28,7 +28,6 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.ScrollPanel;
 import com.google.gwt.user.client.ui.VerticalPanel;
-import com.google.gwt.user.client.ui.Widget;
 
 /**
  * Entry point classes define <code>onModuleLoad()</code>.
@@ -44,8 +43,7 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 	private Anchor signOutLink;
 	private FlexTable actionTable;
 	private VerticalPanel requestPanel;
-	ContactRequestServiceAsync contactRequestsService = GWT
-			.create(ContactRequestService.class);
+	ContactRequestServiceAsync contactRequestsService = GWT.create(ContactRequestService.class);
 	private SuggestDialog suggestDialog;
 
 	
@@ -55,14 +53,18 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 	}
 
 	private void login() {
+		final ProgressDialog dialog = new ProgressDialog("Authenticating", "This might take a few seconds. Kick back and relax!");
 		// Check login status using login service.
 		LoginServiceAsync loginService = GWT.create(LoginService.class);
 		loginService.login(GWT.getHostPageBaseURL(), new AsyncCallback<LoginInfo>() {
 
 			public void onFailure(Throwable error) {
+				dialog.hide();
+				new ErrorDialog("Login error", "While logging in, you received the following error: " + error);
 			}
 	
 			public void onSuccess(LoginInfo result) {
+				dialog.hide();
 				loginInfo = result;
 				if (loginInfo.isLoggedIn()) {
 					init();
@@ -80,13 +82,17 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 	}
 
 	private void getData() {
+		final ProgressDialog dialog = new ProgressDialog("Updating contacts", "This might take a few seconds. Kick back and relax!");
 		contactRequestsService.getContacts(new AsyncCallback<List<Contact>>() {
 			@Override
 			public void onFailure(Throwable caught) {
+				dialog.hide();
+				new ErrorDialog("Something went wrong", "Couldn't retrieve contacts: " + caught);
 			}
 
 			@Override
 			public void onSuccess(List<Contact> result) {
+				dialog.hide();
 				contactList = result;
 				updateActionPanel();
 				updateRequestsPanel();
@@ -233,15 +239,26 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 
 	@Override
 	public void getRandom() {
+		final ProgressDialog dialog = new ProgressDialog("Finding a random contact", "This might take a few seconds. Kick back and relax!");		
 		contactRequestsService.newRandomContact(new AsyncCallback<List<Contact>>() {
 			@Override
 			public void onFailure(Throwable caught) {
+				dialog.hide();
+				new ErrorDialog("Something went wrong", "Couldn't get a random contact: " + caught);
 			}
 
 			@Override
 			public void onSuccess(List<Contact> result) {
-				getData();
+				dialog.hide();
 				getContactDialog.hide();
+				if (contactList == null) {
+					contactList = new ArrayList<Contact>();
+				}
+				if (contactList.size() == result.size()) {
+					new MessageDialog("No new contacts found", "Sorry mate, it seems you're out of luck. We couldn't find any new contacts for you.");
+				} else {
+					getData();
+				}
 			}
 		});
 	}
@@ -254,17 +271,20 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 		} else {
 			playerKey = player.getFirstPlayerKey();
 		}
+		final ProgressDialog dialog = new ProgressDialog("Asking for recommandations", "This might take a few seconds. Kick back and relax!");
 		contactRequestsService.askForRecommandation(playerKey, new AsyncCallback<Void>() {
 			
 			@Override
 			public void onSuccess(Void nothing) {
+				dialog.hide();
 				getData();
 				getContactDialog.hide();
 			}
 			
 			@Override
 			public void onFailure(Throwable caught) {
-				
+				dialog.hide();
+				new ErrorDialog("Something went wrong", "Couldn't get contact from player: " + caught);				
 			}
 		});
 	}
@@ -286,27 +306,54 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 
 	private void play(Contact player, int choice) {
 		String otherPlayer;
+		String name;
 		if (player.getViewer() == 0) {
 			otherPlayer = player.getSecondPlayerKey();
+			name = player.getSecondDebugDisplayName();
 		} else {
 			otherPlayer = player.getFirstPlayerKey();
+			name = player.getFirstDebugDisplayName();
 		}
+		final String otherPlayerName = name;
+		final ProgressDialog dialog = new ProgressDialog("Sending reply", "This might take a few seconds. Kick back and relax!");
 		contactRequestsService.play(otherPlayer, choice, new AsyncCallback<Integer>() {
-
 			@Override
 			public void onSuccess(Integer result) {
-				delayedUpdate();
+				dialog.hide();
+				String title = "Results";
+				if (result == ContactRequestService.PLAY_RESULT_COOPERATE) {
+					new MessageDialog(title, "Congrats! You were right to trust " + otherPlayerName + ". You both got what you wanted. Cheers to an honest deal!");
+					delayedUpdate();
+				} else if (result == ContactRequestService.PLAY_RESULT_BOTH_DEFECTED) {
+					new MessageDialog(title, "Well that was a waste of time. You were right not to trust " + otherPlayerName + ".");
+					delayedUpdate();
+				} else if (result == ContactRequestService.PLAY_RESULT_I_DEFECTED) {
+					new MessageDialog(title,otherPlayerName + ", what a looser. Taking candy from a baby...");
+					delayedUpdate();
+				} else if (result == ContactRequestService.PLAY_RESULT_HE_DEFECTED) {
+					new MessageDialog(title, "Backstabbing bastard! You were wrong to trust " + otherPlayerName + ".");
+					delayedUpdate();
+				} else if (result == ContactRequestService.PLAY_RESULT_ACCEPTED) {
+					delayedUpdate();
+				} else if (result == ContactRequestService.PLAY_RESULT_DECLINED) {
+					new MessageDialog("Rejected", "Somthing went wrong, please wait while updating contact list.");
+					delayedUpdate();
+				}
 			}
 
 			@Override
 			public void onFailure(Throwable caught) {
+				dialog.hide();
+				new ErrorDialog("Something went wrong", "" + caught);
 			}
 		});
 	}
 	
 	private void delayedUpdate() {
+		final ProgressDialog dialog = new ProgressDialog("Waiting for datastore to save changes", "This may take a few seconds.");
 		Timer t = new Timer() {
 			public void run() {
+				dialog.hide();
 				getData();
 			}
 		};
@@ -316,6 +363,7 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 	@Override
 	public void userWantsToSuggestForContact(final Contact contact) {
 		String otherPlayer;
+		final ProgressDialog dialog = new ProgressDialog("Constructing list of possible suggestions", "This might take a few seconds. Kick back and relax!");
 		if (contact.getViewer() == 0) {
 			otherPlayer = contact.getSecondPlayerKey();
 		} else {
@@ -325,11 +373,14 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 			
 			@Override
 			public void onSuccess(List<Contact> result) {
+				dialog.hide();
 				showSuggestDialog(contact, result);
 			}
 			
 			@Override
 			public void onFailure(Throwable caught) {
+				dialog.hide();
+				new ErrorDialog("Something went wrong", "" + caught);
 			}
 		});
 	}
@@ -352,14 +403,18 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 		} else {
 			suggestedPlayer = suggestedContact.getFirstPlayerKey();
 		}
+		final ProgressDialog dialog = new ProgressDialog("Processing suggestion", "This might take a few seconds. Kick back and relax!");
 		contactRequestsService.suggestContact(otherPlayer, suggestedPlayer, new AsyncCallback<Void>() {			
 			@Override
 			public void onSuccess(Void result) {
+				dialog.hide();
 				getData();
 			}
 			
 			@Override
 			public void onFailure(Throwable caught) {
+				dialog.hide();
+				new ErrorDialog("Something went wrong", "" + caught);
 			}
 		});
 		suggestDialog.hide();

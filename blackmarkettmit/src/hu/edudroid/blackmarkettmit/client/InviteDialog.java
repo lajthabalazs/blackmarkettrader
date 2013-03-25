@@ -4,6 +4,7 @@ import hu.edudroid.blackmarkettmit.shared.Contact;
 
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.Label;
@@ -21,12 +22,15 @@ public class InviteDialog extends DialogBox implements ClickHandler {
 		this.listener = listener;
 		this.player = player;
 		VerticalPanel mainPanel = new VerticalPanel();
+		String playerName = null;
 		if (player.getViewer() == 0) {
-			setText("Invite " + player.getSecondDebugDisplayName());
+			playerName = player.getSecondDebugDisplayName();
 		} else {
-			setText("Invite " + player.getFirstDebugDisplayName());
+			playerName = player.getFirstDebugDisplayName();
 		}
-		Label label = new Label("Let's get this started! What will you do?");
+		setText("Invite " + playerName);
+		Label label = new Label("Let's get this started! What will you do once " + playerName + " accepts you invitation?");
+		label.setWidth("200px");
 		screwButton = new Button("I'll screw him/her over");
 		screwButton.addClickHandler(this);
 		cooperateButton = new Button("I'll cooperate");
@@ -38,6 +42,7 @@ public class InviteDialog extends DialogBox implements ClickHandler {
 		mainPanel.add(screwButton);
 		mainPanel.add(cancelButton);
 		setWidget(mainPanel);
+		center();
 		show();
 	}
 

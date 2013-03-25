@@ -36,6 +36,7 @@ public class SuggestDialog extends DialogBox implements ClickHandler {
 		cancelButton.addClickHandler(this);
 		mainPanel.add(cancelButton);
 		setWidget(mainPanel);
+		center();
 		show();
 	}
 

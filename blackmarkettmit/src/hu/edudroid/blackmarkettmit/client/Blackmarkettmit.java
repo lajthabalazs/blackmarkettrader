@@ -17,6 +17,7 @@ import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Anchor;
@@ -27,6 +28,7 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.ScrollPanel;
 import com.google.gwt.user.client.ui.VerticalPanel;
+import com.google.gwt.user.client.ui.Widget;
 
 /**
  * Entry point classes define <code>onModuleLoad()</code>.
@@ -38,51 +40,43 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 	private List<Contact> contactList;
 	private LoginInfo loginInfo;
 
-	private Anchor signInLink = new Anchor("Sign In");
-	private Anchor signOutLink = new Anchor("Sign Out");
+	private Anchor signInLink;
+	private Anchor signOutLink;
 	private FlexTable actionTable;
 	private VerticalPanel requestPanel;
 	ContactRequestServiceAsync contactRequestsService = GWT
 			.create(ContactRequestService.class);
 	private SuggestDialog suggestDialog;
 
+	
 	public void onModuleLoad() {
+		refreshLoginPanel();
 		login();
 	}
 
 	private void login() {
 		// Check login status using login service.
 		LoginServiceAsync loginService = GWT.create(LoginService.class);
-		loginService.login(GWT.getHostPageBaseURL(),
-				new AsyncCallback<LoginInfo>() {
+		loginService.login(GWT.getHostPageBaseURL(), new AsyncCallback<LoginInfo>() {
 
-					public void onFailure(Throwable error) {
-					}
-
-					public void onSuccess(LoginInfo result) {
-						loginInfo = result;
-						if (loginInfo.isLoggedIn()) {
-							init();
-						} else {
-							loadLogin();
-						}
-					}
-				});
+			public void onFailure(Throwable error) {
+			}
+	
+			public void onSuccess(LoginInfo result) {
+				loginInfo = result;
+				if (loginInfo.isLoggedIn()) {
+					init();
+				}
+				refreshLoginPanel();
+			}
+		});
 	}
 
 	private void init() {
+		refreshLoginPanel();
 		getData();
-		initGamePanel();
-	}
-
-	private void loadLogin() {
-		// Assemble login panel.
-		signInLink.setHref(loginInfo.getLoginUrl());
-		VerticalPanel loginPanel = new VerticalPanel();
-		loginPanel.add(new Label(
-				"Please log in with you google account to play the game!"));
-		loginPanel.add(signInLink);
-		RootPanel.get("appPanel").add(loginPanel);
+		initActionPanel();
+		initContactRequestsPanel();
 	}
 
 	private void getData() {
@@ -94,19 +88,38 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 			@Override
 			public void onSuccess(List<Contact> result) {
 				contactList = result;
-				updateContactTable();
+				updateActionPanel();
 				updateRequestsPanel();
 			}
 		});
 	}
 
-	private void initGamePanel() {
-		Label userNameLabel = new Label("Hello " + loginInfo.getNickname()
-				+ "!");
-		signOutLink.setHref(loginInfo.getLogoutUrl());
-
-		RootPanel appPanel = RootPanel.get("appPanel");
+	private void refreshLoginPanel(){
+		RootPanel loginHolder = RootPanel.get("loginHolder");
+		loginHolder.clear();
+		if (loginInfo == null || !loginInfo.isLoggedIn()) {
+			// Assemble login panel.
+			VerticalPanel loginPanel = new VerticalPanel();
+			loginPanel.add(new Label("Please log in with you google account to play the game!"));
+			if (loginInfo != null) {
+				signInLink = new Anchor("Sign In");
+				signInLink.setHref(loginInfo.getLoginUrl());
+				loginPanel.add(signInLink);
+			}
+			loginHolder.add(loginPanel);
+		} else {
+			Label userNameLabel = new Label("Hello " + loginInfo.getNickname() + "!");
+			signOutLink = new Anchor("Sign Out");
+			signOutLink.setHref(loginInfo.getLogoutUrl());
+			loginHolder.add(userNameLabel);
+			loginHolder.add(signOutLink);
+		}
+	}
+	
+	private void initActionPanel(){
+		RootPanel tablePanel = RootPanel.get("actionPanel");
 		actionTable = new FlexTable();
+		DOM.setElementAttribute(actionTable.getElement(), "id", "actionTable");
 		actionTable.setWidget(0, 0, new Label("Player name"));
 		actionTable.setWidget(0, 1, new Label("Games"));
 		actionTable.setWidget(0, 2, new Label("Co-op"));
@@ -114,24 +127,24 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 		actionTable.setWidget(0, 4, new Label("I lost"));
 		actionTable.setWidget(0, 5, new Label("I won"));
 		actionTable.setWidget(0, 6, new Label("Action"));
-		requestPanel = new VerticalPanel();
-		addContactButton = new Button("Add new contact");
-		addContactButton.addClickHandler(this);
+		DOM.setElementAttribute(actionTable.getRowFormatter().getElement(0), "id", "actionTableHeader");
 		ScrollPanel actionTableScroll = new ScrollPanel(actionTable);
 		actionTableScroll.setHeight("400px");
+		tablePanel.add(actionTableScroll);
+	}
+	
+	private void initContactRequestsPanel() {
+		RootPanel requestHolder = RootPanel.get("contactRequestPanel");
+		addContactButton = new Button("Add new contact");
+		addContactButton.addClickHandler(this);
+		requestPanel = new VerticalPanel();
 		ScrollPanel historyScroll = new ScrollPanel(requestPanel);
 		historyScroll.setHeight("400px");
-		HorizontalPanel horizontalPanel = new HorizontalPanel();
-		horizontalPanel.add(actionTableScroll);
-		horizontalPanel.add(historyScroll);
-		horizontalPanel.setHeight("400px");
-		appPanel.add(userNameLabel);
-		appPanel.add(signOutLink);
-		appPanel.add(horizontalPanel);
-		appPanel.add(addContactButton);
+		requestHolder.add(addContactButton);
+		requestHolder.add(requestPanel);
 	}
 
-	private void updateContactTable() {
+	private void updateActionPanel() {
 		// Clear table
 		while (actionTable.getRowCount() > 1) {
 			actionTable.removeRow(1);
@@ -297,9 +310,7 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 				getData();
 			}
 		};
-
-		// delay running for 2 seconds
-		t.schedule(2000);
+		t.schedule(5000);
 	}
 
 	@Override

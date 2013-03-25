@@ -1,0 +1,77 @@
+.gwt-DialogBox {/* the outside of the dialog */
+	border-radius: 8px;
+	background-color: #000;
+	padding: 4px;
+}
+.gwt-DialogBox .Caption {/* the caption */
+	border-radius: 4px;
+	font-weight: bold;
+	background-color: #E42E33;
+	color: #FFFFFF;
+	padding: 4px;
+}
+.gwt-DialogBox .dialogContent {/* the wrapepr around the content */ 
+	border-radius: 4px;
+	padding: 10px;
+	margin: 4px;
+	background-color: #FFFFFF;
+}
+
+.gwt-DialogBox .dialogContent table {/* the wrapepr around the content */ 
+	width: 100%;
+}
+
+.gwt-DialogBox .dialogTopLeft {/* the top left cell */
+
+}
+.gwt-DialogBox .dialogTopLeftInner {/* the inner element of the cell */
+
+}
+.gwt-DialogBox .dialogTopCenter {/* the top center cell, where the caption is located */
+
+}
+.gwt-DialogBox .dialogTopCenterInner { /* the inner element of the cell */
+
+}
+.gwt-DialogBox .dialogTopRight {/* the top right cell */
+
+}
+.gwt-DialogBox .dialogTopRightInner { /* the inner element of the cell */
+
+}
+.gwt-DialogBox .dialogMiddleLeft { /* the middle left cell */
+
+}
+.gwt-DialogBox .dialogMiddleLeftInner { /* the inner element of the cell */
+
+}
+.gwt-DialogBox .dialogMiddleCenter { /* the middle center cell, where the content is located */
+
+}
+.gwt-DialogBox .dialogMiddleCenterInner { /* the inner element of the cell */
+
+}
+.gwt-DialogBox .dialogMiddleRight { /* the middle right cell */
+
+}
+.gwt-DialogBox .dialogMiddleRightInner { /* the inner element of the cell */
+
+}
+.gwt-DialogBox .dialogBottomLeft { /* the bottom left cell */
+
+}
+.gwt-DialogBox .dialogBottomLeftInner { /* the inner element of the cell */
+
+}
+.gwt-DialogBox .dialogBottomCenter { /* the bottom center cell */
+
+}
+.gwt-DialogBox .dialogBottomCenterInner { /* the inner element of the cell */
+
+}
+.gwt-DialogBox .dialogBottomRight { /* the bottom right cell */
+
+}
+.gwt-DialogBox .dialogBottomRightInner { /* the inner element of the cell */
+
+}

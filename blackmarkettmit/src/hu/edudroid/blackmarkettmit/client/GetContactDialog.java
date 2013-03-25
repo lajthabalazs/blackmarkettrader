@@ -54,11 +54,12 @@ public class GetContactDialog extends DialogBox implements ClickHandler {
 		randomButton.addClickHandler(this);
 		table.setWidth("100%");
 		ScrollPanel tableScrollPanel = new ScrollPanel(table);
-		tableScrollPanel.setSize("300px","200px");
+		tableScrollPanel.setHeight("200px");
 		mainPanel.add(tableScrollPanel);
 		mainPanel.add(randomButton);
 		mainPanel.add(cancelButton);
 		setWidget(mainPanel);
+		center();
 		show();
 	}
 

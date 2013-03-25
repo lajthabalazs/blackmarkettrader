@@ -40,6 +40,7 @@ public class AcceptDialog extends DialogBox implements ClickHandler {
 		mainPanel.add(screwButton);
 		mainPanel.add(cancelButton);
 		setWidget(mainPanel);
+		center();		
 		show();
 	}
 

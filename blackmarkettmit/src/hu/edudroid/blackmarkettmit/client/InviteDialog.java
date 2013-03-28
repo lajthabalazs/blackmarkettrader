@@ -4,7 +4,6 @@ import hu.edudroid.blackmarkettmit.shared.Contact;
 
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.Label;
@@ -28,14 +27,14 @@ public class InviteDialog extends DialogBox implements ClickHandler {
 		} else {
 			playerName = player.getFirstDebugDisplayName();
 		}
-		setText("Invite " + playerName);
-		Label label = new Label("Let's get this started! What will you do once " + playerName + " accepts you invitation?");
+		setText("Invite " + playerName + " to trade");
+		Label label = new Label("What will you bring to the deal once " + playerName + " accepts you invitation?");
 		label.setWidth("200px");
-		screwButton = new Button("I'll screw him/her over");
-		screwButton.addClickHandler(this);
-		cooperateButton = new Button("I'll cooperate");
+		cooperateButton = new Button("I'll bring the real deal");
 		cooperateButton.addClickHandler(this);
-		cancelButton = new Button("Let's reconsider this");
+		screwButton = new Button("I'll bring a fake");
+		screwButton.addClickHandler(this);
+		cancelButton = new Button("I'm having second thoughts");
 		cancelButton.addClickHandler(this);
 		mainPanel.add(label);
 		mainPanel.add(cooperateButton);

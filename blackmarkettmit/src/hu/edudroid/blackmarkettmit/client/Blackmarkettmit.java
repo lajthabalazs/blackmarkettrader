@@ -9,6 +9,7 @@ import hu.edudroid.blackmarkettmit.shared.Contact;
 import hu.edudroid.blackmarkettmit.shared.ContactComparator;
 import hu.edudroid.blackmarkettmit.shared.LoginInfo;
 import hu.edudroid.blackmarkettmit.shared.PlayerState;
+import hu.edudroid.blackmarkettmit.shared.Tupple;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +19,6 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.DOM;
-import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Anchor;
 import com.google.gwt.user.client.ui.Button;
@@ -94,10 +94,14 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 			public void onSuccess(List<Contact> result) {
 				dialog.hide();
 				contactList = result;
-				updateActionPanel();
-				updateRequestsPanel();
+				updateUI();
 			}
 		});
+	}
+	
+	private void updateUI() {
+		updateActionPanel();
+		updateRequestsPanel();
 	}
 
 	private void refreshLoginPanel(){
@@ -163,8 +167,6 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 		for (Contact player : contactList) {
 			int nextRow = actionTable.getRowCount();
 			if (player.getViewer() == 0) {
-				/*actionTable.setWidget(nextRow, 0,
-						new Label(player.getSecondDisplayName()));*/
 				actionTable.setWidget(nextRow, 0,
 						new Label(player.getSecondDebugDisplayName()));
 				actionTable.setWidget(nextRow, 1,
@@ -178,8 +180,6 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 				actionTable.setWidget(nextRow, 5,
 						new Label("" + player.getFirstDefectCount()));
 			} else {
-				/* actionTable.setWidget(nextRow, 0,
-						new Label(player.getFirstDisplayName()));*/
 				actionTable.setWidget(nextRow, 0,
 						new Label(player.getFirstDebugDisplayName()));
 				actionTable.setWidget(nextRow, 1,
@@ -225,7 +225,7 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 			}
 		}
 		if (count == 0) {
-			requestPanel.add(new Label("Noone is asking for contacts."));
+			requestPanel.add(new Label("No one is asking for contacts."));
 		}
 	}
 
@@ -240,7 +240,7 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 	@Override
 	public void getRandom() {
 		final ProgressDialog dialog = new ProgressDialog("Finding a random contact", "This might take a few seconds. Kick back and relax!");		
-		contactRequestsService.newRandomContact(new AsyncCallback<List<Contact>>() {
+		contactRequestsService.newRandomContact(new AsyncCallback<Tupple<Contact,List<Contact>>>() {
 			@Override
 			public void onFailure(Throwable caught) {
 				dialog.hide();
@@ -248,17 +248,22 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 			}
 
 			@Override
-			public void onSuccess(List<Contact> result) {
+			public void onSuccess(Tupple<Contact,List<Contact>> result) {
 				dialog.hide();
 				getContactDialog.hide();
-				if (contactList == null) {
-					contactList = new ArrayList<Contact>();
-				}
-				if (contactList.size() == result.size()) {
-					new MessageDialog("No new contacts found", "Sorry mate, it seems you're out of luck. We couldn't find any new contacts for you.");
+				if (result.getFirst() == null) {
+					new ErrorDialog("No new contacts found", "Sorry mate, it seems you're out of luck. We couldn't find any new contacts for you.");
 				} else {
-					getData();
+					String contactName = "";
+					if (result.getFirst().getViewer() == 0) {
+						contactName = result.getFirst().getSecondDebugDisplayName();
+					} else {
+						contactName = result.getFirst().getFirstDebugDisplayName();
+					}
+					new MessageDialog("Meet " + contactName + "!", "This is the beginning of a beautiful friendship..");
 				}
+				contactList = result.getSecond();
+				updateUI();
 			}
 		});
 	}
@@ -315,29 +320,33 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 			name = player.getFirstDebugDisplayName();
 		}
 		final String otherPlayerName = name;
-		final ProgressDialog dialog = new ProgressDialog("Sending reply", "This might take a few seconds. Kick back and relax!");
-		contactRequestsService.play(otherPlayer, choice, new AsyncCallback<Integer>() {
+		final ProgressDialog dialog = new ProgressDialog("Processing action", "This might take a few seconds. Kick back and relax!");
+		contactRequestsService.play(otherPlayer, choice, new AsyncCallback<Tupple<Integer,List<Contact>>>() {
 			@Override
-			public void onSuccess(Integer result) {
+			public void onSuccess(Tupple<Integer,List<Contact>> result) {
+				if (result.getSecond() != null) {
+					contactList = result.getSecond();
+				} else {
+					new ErrorDialog("No new contacts", "We didn't receive any new contacts.");
+				}
 				dialog.hide();
-				String title = "Results";
-				if (result == ContactRequestService.PLAY_RESULT_COOPERATE) {
-					new MessageDialog(title, "Congrats! You were right to trust " + otherPlayerName + ". You both got what you wanted. Cheers to an honest deal!");
-					delayedUpdate();
-				} else if (result == ContactRequestService.PLAY_RESULT_BOTH_DEFECTED) {
-					new MessageDialog(title, "Well that was a waste of time. You were right not to trust " + otherPlayerName + ".");
-					delayedUpdate();
-				} else if (result == ContactRequestService.PLAY_RESULT_I_DEFECTED) {
-					new MessageDialog(title,otherPlayerName + ", what a looser. Taking candy from a baby...");
-					delayedUpdate();
-				} else if (result == ContactRequestService.PLAY_RESULT_HE_DEFECTED) {
-					new MessageDialog(title, "Backstabbing bastard! You were wrong to trust " + otherPlayerName + ".");
-					delayedUpdate();
-				} else if (result == ContactRequestService.PLAY_RESULT_ACCEPTED) {
-					delayedUpdate();
-				} else if (result == ContactRequestService.PLAY_RESULT_DECLINED) {
+				if (result.getFirst() == ContactRequestService.PLAY_RESULT_COOPERATE) {
+					new MessageDialog("You got your money", "Congrats! You were right to trust " + otherPlayerName + ". You both got what you wanted. Cheers to an honest deal!");
+					updateUI();
+				} else if (result.getFirst() == ContactRequestService.PLAY_RESULT_BOTH_DEFECTED) {
+					new MessageDialog("The money was fake", "Well that was a waste of time. Thank god you didn't fall for " + otherPlayerName + "'s trick.");
+					updateUI();
+				} else if (result.getFirst() == ContactRequestService.PLAY_RESULT_I_DEFECTED) {
+					new MessageDialog(otherPlayerName + " paid the price", otherPlayerName + ", what a looser. Taking candy from a baby...");
+					updateUI();
+				} else if (result.getFirst() == ContactRequestService.PLAY_RESULT_HE_DEFECTED) {
+					new MessageDialog("The money was fake", "Backstabbing bastard! You were wrong to trust " + otherPlayerName + ".");
+					updateUI();
+				} else if (result.getFirst() == ContactRequestService.PLAY_RESULT_ACCEPTED) {
+					updateUI();
+				} else if (result.getFirst() == ContactRequestService.PLAY_RESULT_DECLINED) {
 					new MessageDialog("Rejected", "Somthing went wrong, please wait while updating contact list.");
-					delayedUpdate();
+					updateUI();
 				}
 			}
 
@@ -349,17 +358,6 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 		});
 	}
 	
-	private void delayedUpdate() {
-		final ProgressDialog dialog = new ProgressDialog("Waiting for datastore to save changes", "This may take a few seconds.");
-		Timer t = new Timer() {
-			public void run() {
-				dialog.hide();
-				getData();
-			}
-		};
-		t.schedule(5000);
-	}
-
 	@Override
 	public void userWantsToSuggestForContact(final Contact contact) {
 		String otherPlayer;

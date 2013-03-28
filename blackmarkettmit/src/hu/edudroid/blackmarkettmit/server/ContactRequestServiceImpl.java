@@ -9,6 +9,7 @@ import hu.edudroid.blackmarkettmit.client.NotLoggedInException;
 import hu.edudroid.blackmarkettmit.client.services.ContactRequestService;
 import hu.edudroid.blackmarkettmit.shared.BlackMarketUser;
 import hu.edudroid.blackmarkettmit.shared.Contact;
+import hu.edudroid.blackmarkettmit.shared.Tupple;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 
@@ -17,10 +18,10 @@ public class ContactRequestServiceImpl  extends RemoteServiceServlet implements 
 	private static final long serialVersionUID = 2355080806520903322L;
 
 	@Override
-	public List<Contact> newRandomContact() throws NotLoggedInException {
+	public Tupple<Contact, List<Contact>> newRandomContact() throws NotLoggedInException {
 		BlackMarketUser user = UserManager.getCurrentUser();
 		if (user == null) {
-			return null;
+			throw new NotLoggedInException();
 		}
 		List<Contact> contacts = ContactUtils.getContactsForUser(user.getUserKey());
 		BlackMarketUser possibleContact = null;
@@ -36,33 +37,27 @@ public class ContactRequestServiceImpl  extends RemoteServiceServlet implements 
 				possibleContact = null;
 				continue tries;
 			}
-			System.out.println("Checking " + possibleContact.getUserKey());
-			System.out.println("For " + contacts.size() + " contacts.");
-			for (Contact contact : contacts) {
-				System.out.println("Matching against " + contact.getFirstPlayerKey());
-				System.out.println("and " + contact.getSecondPlayerKey());
-				if (contact.getFirstPlayerKey().equals(possibleContact.getUserKey())
-						|| contact.getSecondPlayerKey().equals(possibleContact.getUserKey())) {
-					System.out.println("Match, next try.");
-					possibleContact = null;
-					continue tries;
-				}
+			System.out.println("Checking if in contact with " + possibleContact.getUserKey());
+			Contact contact = ContactUtils.getContactForUsers(user.getUserKey(), possibleContact.getUserKey());
+			if (contact != null) {
+				possibleContact = null;
+				System.out.println("Common contact found.");
+			} else {
+				// We have an eligible contact
+				System.out.println("Possible contact found " + possibleContact.getUserKey());
+				break tries;
 			}
-			// We have an eligible contact
-			System.out.println("Contact found " + possibleContact.getUserKey());
-			break tries;
 		}
 		if (possibleContact == null) {
 			// Couldn't find contact
-			return null;
+			return new Tupple<Contact, List<Contact>>(null, contacts);
 		} else {
 			// Create contact from user and found possible contact
 			Contact newContact = ContactUtils.createContact(user, possibleContact);
 			ContactUtils.save(newContact);
 			// Add to contact list
-			ArrayList<Contact> rets = new ArrayList<Contact>();
-			rets.add(newContact);
-			return rets;
+			contacts.add(newContact);
+			return new Tupple<Contact, List<Contact>>(newContact, contacts);
 		}
 	}
 
@@ -77,7 +72,7 @@ public class ContactRequestServiceImpl  extends RemoteServiceServlet implements 
 	}
 
 	@Override
-	public Integer play(String otherPlayerId, int choice) throws NotLoggedInException {
+	public Tupple<Integer, List<Contact>> play(String otherPlayerId, int choice) throws NotLoggedInException {
 		BlackMarketUser blackMarketUser = UserManager.getCurrentUser();
 		if (blackMarketUser == null) {
 			throw new NotLoggedInException();
@@ -87,20 +82,33 @@ public class ContactRequestServiceImpl  extends RemoteServiceServlet implements 
 		System.out.println("First:     " + playerId);
 		System.out.println("Second:    " + otherPlayerId);
 		System.out.println("Choice:    " + choice);
-		Contact contact = ContactUtils.getContactForUsers(playerId, otherPlayerId);
+		//Contact contact = ContactUtils.getContactForUsers(playerId, otherPlayerId);
+		Contact contact = null;
+		List<Contact> contacts = ContactUtils.getContactsForUser(playerId);
+		for (Contact listedContact : contacts) {
+			if (listedContact.getViewer() == 0) {
+				if (listedContact.getSecondPlayerKey().equals(otherPlayerId)){
+					contact = listedContact;
+				}
+			} else {
+				if (listedContact.getFirstPlayerKey().equals(otherPlayerId)){
+					contact = listedContact;
+				}
+			}
+		}
 		if (contact == null) {
 			System.out.println("No player.");
-			return PLAY_RESULT_DECLINED;
+			return new Tupple<Integer, List<Contact>>(PLAY_RESULT_DECLINED, contacts);
 		}
 		System.out.println("Viewer:    " + contact.getViewer());
 		if ((choice != Contact.CHOICE_COOPERATE) && (choice != Contact.CHOICE_DEFECT) && (choice != Contact.CHOICE_REJECT)) {
-			return PLAY_RESULT_DECLINED;
+			return new Tupple<Integer, List<Contact>>(PLAY_RESULT_DECLINED, contacts);
 		}
 		if (choice == Contact.CHOICE_REJECT) {
 			contact.setInGame(0);
 			contact.setWhoStarted(-1);
 			ContactUtils.save(contact);
-			return PLAY_RESULT_ACCEPTED;
+			return new Tupple<Integer, List<Contact>>(PLAY_RESULT_ACCEPTED, contacts);
 		}
 		if (contact.getInGame() == 0) {
 			// New game
@@ -115,12 +123,14 @@ public class ContactRequestServiceImpl  extends RemoteServiceServlet implements 
 				contact.setSecondPlayerChoice(choice);
 			}
 			ContactUtils.save(contact);
-			return 0;
+			return new Tupple<Integer, List<Contact>>(PLAY_RESULT_ACCEPTED, contacts);
 		} else {
-			if (contact.getWhoStarted() == contact.getViewer()) {
-				return PLAY_RESULT_DECLINED;
-			}
 			// Old game
+			// User want's to change his choice
+			if (contact.getWhoStarted() == contact.getViewer()) {
+				return new Tupple<Integer, List<Contact>>(PLAY_RESULT_DECLINED, contacts);
+			}
+			// User responds
 			contact.setInGame(0);
 			int viewer = contact.getViewer();
 			if (viewer == 0) {
@@ -134,14 +144,14 @@ public class ContactRequestServiceImpl  extends RemoteServiceServlet implements 
 				if (contact.getSecondPlayerChoice() == Contact.CHOICE_COOPERATE) {
 					contact.setCooperationCount(contact.getCooperationCount() + 1);
 					ContactUtils.save(contact);
-					return PLAY_RESULT_COOPERATE;
+					return new Tupple<Integer, List<Contact>>(PLAY_RESULT_COOPERATE, contacts);
 				}else {
 					contact.setSecondDefectCount(contact.getSecondDefectCount() + 1);
 					ContactUtils.save(contact);
 					if (viewer == 0) {
-						return PLAY_RESULT_HE_DEFECTED;
+						return new Tupple<Integer, List<Contact>>(PLAY_RESULT_HE_DEFECTED, contacts);
 					} else {
-						return PLAY_RESULT_I_DEFECTED;
+						return new Tupple<Integer, List<Contact>>(PLAY_RESULT_I_DEFECTED, contacts);
 					}
 				}
 			} else {
@@ -149,14 +159,14 @@ public class ContactRequestServiceImpl  extends RemoteServiceServlet implements 
 					contact.setFirstDefectCount(contact.getFirstDefectCount() + 1);
 					ContactUtils.save(contact);
 					if (viewer == 0) {
-						return PLAY_RESULT_I_DEFECTED;
+						return new Tupple<Integer, List<Contact>>(PLAY_RESULT_I_DEFECTED, contacts);
 					} else {
-						return PLAY_RESULT_HE_DEFECTED;
+						return new Tupple<Integer, List<Contact>>(PLAY_RESULT_HE_DEFECTED, contacts);
 					}
 				}else {
 					contact.setBothDefectCount(contact.getBothDefectCount() + 1);
 					ContactUtils.save(contact);
-					return PLAY_RESULT_BOTH_DEFECTED;
+					return new Tupple<Integer, List<Contact>>(PLAY_RESULT_BOTH_DEFECTED, contacts);
 				}
 			}
 		}

@@ -12,7 +12,7 @@ public class ErrorDialog extends DialogBox implements ClickHandler{
 		VerticalPanel mainPanel = new VerticalPanel();
 		setText(title);
 		Label label = new Label(message);
-		label.setWidth("200px");
+		label.setWidth("350px");
 		Button cancelButton = new Button("I'll get over it");
 		cancelButton.addClickHandler(this);
 		mainPanel.add(label);

@@ -2,6 +2,7 @@ package hu.edudroid.blackmarkettmit.client.services;
 
 import hu.edudroid.blackmarkettmit.client.NotLoggedInException;
 import hu.edudroid.blackmarkettmit.shared.Contact;
+import hu.edudroid.blackmarkettmit.shared.Tupple;
 
 import java.util.List;
 
@@ -19,8 +20,8 @@ public interface ContactRequestService extends RemoteService {
 	
 	public void askForRecommandation(String otherPlayerId) throws NotLoggedInException;
 	public List<Contact> getContacts() throws NotLoggedInException;
-	public List<Contact> newRandomContact() throws NotLoggedInException;
-	public Integer play(String otherPlayerId, int choice) throws NotLoggedInException;
+	public Tupple<Contact,List<Contact>> newRandomContact() throws NotLoggedInException;
+	public Tupple<Integer, List<Contact>> play(String otherPlayerId, int choice) throws NotLoggedInException;
 	public List<Contact> getAlligibleContacts(String otherPlayerId)  throws NotLoggedInException;
 	public void suggestContact(String otherPlayerId, String suggestedPlayerId)  throws NotLoggedInException;
 }

@@ -22,18 +22,19 @@ public class AcceptDialog extends DialogBox implements ClickHandler {
 		this.player = player;
 		VerticalPanel mainPanel = new VerticalPanel();
 		Label label;
+		String playerName;
 		if (player.getViewer() == 0) {
-			setText("Accept " + player.getSecondDisplayName() + "'s invitation");
-			label = new Label("You were invited to trade by " + player.getSecondDisplayName() + "! What will you do?");
+			playerName = player.getSecondDebugDisplayName();
 		} else {
-			setText("Accept " + player.getFirstDisplayName() + "'s invitation");
-			label = new Label("You were invited to trade by " + player.getFirstDisplayName() + "! What will you do?");
+			playerName = player.getFirstDebugDisplayName();
 		}
-		screwButton = new Button("Screw him/her over");
-		screwButton.addClickHandler(this);
-		cooperateButton = new Button("Let's be friendly");
+		setText("Accept " + playerName + "'s invitation");
+		label = new Label(playerName + " want's to buy a painting! Do you have something?");
+		cooperateButton = new Button("Sell the real deal");
 		cooperateButton.addClickHandler(this);
-		cancelButton = new Button("Let me think this over");
+		screwButton = new Button("Let's sell a fake");
+		screwButton.addClickHandler(this);
+		cancelButton = new Button("I have to think about it");
 		cancelButton.addClickHandler(this);
 		mainPanel.add(label);
 		mainPanel.add(cooperateButton);

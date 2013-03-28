@@ -32,14 +32,13 @@ public class Contact implements Serializable{
 	// Recommendation requests
 	private Date firstPlayerRequestsRecommandation;
 	private Date secondPlayerRequestsRecommandation;
-	// Statistics
+	// Statistics	
+	private Date lastSuccessfulTrade;
 	private int gameCount = 0;
 	private int cooperationCount = 0;
 	private int bothDefectCount = 0;
 	private int firstDefectCount = 0;
 	private int secondDefectCount = 0;
-	
-	private PlayerState state = PlayerState.NEW; // State is not persisted, it is calculated from events and statistics
 	
 	public String getEntityKey() {
 		return entityKey;
@@ -163,6 +162,14 @@ public class Contact implements Serializable{
 		this.secondPlayerRequestsRecommandation = secondPlayerRequestsRecommandation;
 	}
 
+	public Date getLastSuccessfulTrade() {
+		return lastSuccessfulTrade;
+	}
+
+	public void setLastSuccessfulTrade(Date lastSuccessfulTrade) {
+		this.lastSuccessfulTrade = lastSuccessfulTrade;
+	}
+
 	public int getGameCount() {
 		return gameCount;
 	}
@@ -204,10 +211,28 @@ public class Contact implements Serializable{
 	}
 
 	public PlayerState getState() {
+		PlayerState state = PlayerState.NEW;
+		
+		if (getGameCount() > 0) {
+			state = PlayerState.NEUTRAL;
+		}
+		if (getViewer() == 0) {
+			if (getInGame() == 1) {
+				if (getWhoStarted() == 0) {
+					state = PlayerState.INVITED_HIM;
+				} else {
+					state = PlayerState.INVITED_ME;
+				}
+			}
+		} else {
+			if (getInGame() == 1) {
+				if (getWhoStarted() == 0) {
+					state = PlayerState.INVITED_ME;
+				} else {
+					state = PlayerState.INVITED_HIM;
+				}
+			}
+		}
 		return state;
-	}
-
-	public void setState(PlayerState state) {
-		this.state = state;
 	}
 }

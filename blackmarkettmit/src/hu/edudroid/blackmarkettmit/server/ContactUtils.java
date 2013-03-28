@@ -160,30 +160,11 @@ public class ContactUtils {
 		contact.setBothDefectCount((int)((Long)result.getProperty("bothDefectCount")).longValue());
 		contact.setFirstDefectCount((int)((Long)result.getProperty("firstDefectCount")).longValue());
 		contact.setSecondDefectCount((int)((Long)result.getProperty("secondDefectCount")).longValue());
-		
-		contact.setState(PlayerState.NEW);
-		
-		if (contact.getGameCount() > 0) {
-			contact.setState(PlayerState.NEUTRAL);
-		}
+
 		if (viewerKey.equals(contact.getFirstPlayerKey())) {
 			contact.setViewer(0);
-			if (contact.getInGame() == 1) {
-				if (contact.getWhoStarted() == 0) {
-					contact.setState(PlayerState.INVITED_HIM);
-				} else {
-					contact.setState(PlayerState.INVITED_ME);
-				}
-			}
 		} else {
 			contact.setViewer(1);
-			if (contact.getInGame() == 1) {
-				if (contact.getWhoStarted() == 0) {
-					contact.setState(PlayerState.INVITED_ME);
-				} else {
-					contact.setState(PlayerState.INVITED_HIM);
-				}
-			}
 		}
 		return contact;
 	}

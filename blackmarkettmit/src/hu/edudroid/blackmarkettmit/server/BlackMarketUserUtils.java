@@ -46,7 +46,9 @@ public class BlackMarketUserUtils {
 	
 	public static BlackMarketUser getRandomUser() {
 		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-		Filter randomFilter = new FilterPredicate("random", FilterOperator.LESS_THAN_OR_EQUAL, Math.random());
+		double random = Math.random();
+		Filter randomFilter = new FilterPredicate("random", FilterOperator.LESS_THAN_OR_EQUAL, random);
+		System.out.println("Random value " + random);
 		Query q = new Query("BlackMarketUser").setFilter(randomFilter).addSort("random",SortDirection.DESCENDING);
 		PreparedQuery pq = datastore.prepare(q);
 

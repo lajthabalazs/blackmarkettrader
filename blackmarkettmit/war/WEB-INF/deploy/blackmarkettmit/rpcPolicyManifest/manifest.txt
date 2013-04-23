@@ -1,2 +1,4 @@
 # Module blackmarkettmit
 # RPC service class, partial path of RPC policy file
+hu.edudroid.blackmarkettmit.client.services.ContactRequestService, 48E0D46940C091B2D915FF86711BBA70.gwt.rpc
+hu.edudroid.blackmarkettmit.client.services.LoginService, 86C76BC5DAEA99FCC0E1C172508E5C0A.gwt.rpc

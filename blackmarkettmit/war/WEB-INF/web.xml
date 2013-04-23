@@ -40,4 +40,33 @@
 	<servlet-name>contactRequest</servlet-name>
     <url-pattern>/blackmarkettmit/contactRequest</url-pattern>
   </servlet-mapping>
+  
+  	<servlet>
+		<servlet-name>FacebookServlet</servlet-name>
+		<servlet-class>hu.edudroid.blackmarkettmit.server.FacebookServlet</servlet-class>
+		<init-param>
+			<param-name>services</param-name>
+	 		<param-value/>
+	 	</init-param>
+	 </servlet>
+	
+	<servlet-mapping>
+		<servlet-name>FacebookLoginServlet</servlet-name>
+		<url-pattern>/FacebookLoginServlet/*</url-pattern>
+	</servlet-mapping>
+	  
+	<servlet>
+		<servlet-name>FacebookLoginServlet</servlet-name>
+		<servlet-class>hu.edudroid.blackmarkettmit.server.FacebookLoginServlet</servlet-class>
+		<init-param>
+			<param-name>services</param-name>
+	 		<param-value/>
+	 	</init-param>
+	 </servlet>
+	
+	<servlet-mapping>
+		<servlet-name>FacebookServlet</servlet-name>
+		<url-pattern>/FacebookServlet/*</url-pattern>
+	</servlet-mapping>
+  
 </web-app>

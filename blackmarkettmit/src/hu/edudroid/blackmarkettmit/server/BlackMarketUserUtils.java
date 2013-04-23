@@ -16,11 +16,11 @@ import hu.edudroid.blackmarkettmit.shared.BlackMarketUser;
 
 public class BlackMarketUserUtils {
 	
-	public static BlackMarketUser getUserByEmail(String emailAddress) {
+	public static BlackMarketUser getUserByExternalId(String externalId) {
 		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 
 		Filter externalKeyFilter = new FilterPredicate("externalId",
-				FilterOperator.EQUAL, emailAddress);
+				FilterOperator.EQUAL, externalId);
 
 		// Use class Query to assemble a query
 		Query q = new Query("BlackMarketUser").setFilter(externalKeyFilter);

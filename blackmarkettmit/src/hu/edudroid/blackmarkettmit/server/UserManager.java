@@ -11,7 +11,7 @@ public class UserManager {
 		UserService userService = UserServiceFactory.getUserService();
 		User user = userService.getCurrentUser();
 		if (user!=null) {
-			return BlackMarketUserUtils.getUserByEmail(user.getEmail());
+			return BlackMarketUserUtils.getUserByExternalId(user.getEmail());
 		} else {
 			return null;
 		}

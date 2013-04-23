@@ -40,7 +40,6 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 	private LoginInfo loginInfo;
 
 	private Anchor signInLink;
-	private Anchor signOutLink;
 	private FlexTable actionTable;
 	private VerticalPanel requestPanel;
 	ContactRequestServiceAsync contactRequestsService = GWT.create(ContactRequestService.class);
@@ -110,7 +109,7 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 		if (loginInfo == null || !loginInfo.isLoggedIn()) {
 			// Assemble login panel.
 			VerticalPanel loginPanel = new VerticalPanel();
-			loginPanel.add(new Label("Please log in with you google account to play the game!"));
+			loginPanel.add(new Label("Log in with Facebook!"));
 			if (loginInfo != null) {
 				signInLink = new Anchor("Sign In");
 				signInLink.setHref(loginInfo.getLoginUrl());
@@ -119,10 +118,7 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 			loginHolder.add(loginPanel);
 		} else {
 			Label userNameLabel = new Label("Hello " + loginInfo.getNickname() + "!");
-			signOutLink = new Anchor("Sign Out");
-			signOutLink.setHref(loginInfo.getLogoutUrl());
 			loginHolder.add(userNameLabel);
-			loginHolder.add(signOutLink);
 		}
 	}
 	

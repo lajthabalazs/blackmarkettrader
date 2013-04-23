@@ -1,2 +1,0 @@
-serviceClass: hu.edudroid.blackmarkettmit.client.services.ContactRequestService
-path: 2A396567352B49B24D7AA101719B0AC4.gwt.rpc

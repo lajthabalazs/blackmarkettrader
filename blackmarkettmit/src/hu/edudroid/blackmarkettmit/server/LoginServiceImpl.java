@@ -1,12 +1,11 @@
 package hu.edudroid.blackmarkettmit.server;
 
+import javax.servlet.http.HttpSession;
+
 import hu.edudroid.blackmarkettmit.client.services.LoginService;
 import hu.edudroid.blackmarkettmit.shared.BlackMarketUser;
 import hu.edudroid.blackmarkettmit.shared.LoginInfo;
 
-import com.google.appengine.api.users.User;
-import com.google.appengine.api.users.UserService;
-import com.google.appengine.api.users.UserServiceFactory;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 
 public class LoginServiceImpl extends RemoteServiceServlet implements
@@ -15,28 +14,27 @@ public class LoginServiceImpl extends RemoteServiceServlet implements
 	private static final long serialVersionUID = -8138238825148479161L;
 
 	public LoginInfo login(String requestUri) {
-		UserService userService = UserServiceFactory.getUserService();
-		User user = userService.getCurrentUser();
+		HttpSession session = getThreadLocalRequest().getSession();
+		String userId = (String) session.getAttribute(FacebookServlet.USER_ID);
+		String userName = (String) session.getAttribute(FacebookServlet.USER_NAME);
 		LoginInfo loginInfo = new LoginInfo();
 
-		if (user != null) {
+		if (userId != null) {
 			loginInfo.setLoggedIn(true);
-			loginInfo.setEmailAddress(user.getEmail());
-			loginInfo.setNickname(user.getNickname());
-			loginInfo.setLogoutUrl(userService.createLogoutURL(requestUri));
-			// Check if user is part of the system
-			
-			BlackMarketUser blackMarketUser = BlackMarketUserUtils.getUserByEmail(user.getEmail());
+			loginInfo.setExternalId(userId);
+			loginInfo.setNickname(userName);
+			// Check if user is part of the system			
+			BlackMarketUser blackMarketUser = BlackMarketUserUtils.getUserByExternalId(userId);
 			if (blackMarketUser == null) {
 				blackMarketUser = new BlackMarketUser();
-				blackMarketUser.setExternalId(loginInfo.getEmailAddress());
+				blackMarketUser.setExternalId(userId);
 				blackMarketUser.setRandom((float)Math.random());
 				BlackMarketUserUtils.save(blackMarketUser);
 			}
 			loginInfo.setBlackMarketUser(blackMarketUser);
 		} else {
 			loginInfo.setLoggedIn(false);
-			loginInfo.setLoginUrl(userService.createLoginURL(requestUri));
+			loginInfo.setLoginUrl("/FacebookServlet");
 		}
 		return loginInfo;
 	}

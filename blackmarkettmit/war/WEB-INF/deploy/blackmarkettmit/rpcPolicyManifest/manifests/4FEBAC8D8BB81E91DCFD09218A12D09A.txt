@@ -1,2 +1,2 @@
 serviceClass: hu.edudroid.blackmarkettmit.client.services.LoginService
-path: B885D2D2A30B36915D2F2D9E675DDADB.gwt.rpc
+path: 86C76BC5DAEA99FCC0E1C172508E5C0A.gwt.rpc

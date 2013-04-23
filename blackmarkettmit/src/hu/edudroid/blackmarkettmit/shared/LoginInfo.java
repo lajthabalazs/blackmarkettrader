@@ -7,8 +7,7 @@ public class LoginInfo implements Serializable {
 	private static final long serialVersionUID = 8010763846801676585L;
 	private boolean loggedIn = false;
 	private String loginUrl;
-	private String logoutUrl;
-	private String emailAddress;
+	private String externalId;
 	private String nickname;
 	private BlackMarketUser blackMarketUser;
 
@@ -28,20 +27,12 @@ public class LoginInfo implements Serializable {
 		this.loginUrl = loginUrl;
 	}
 
-	public String getLogoutUrl() {
-		return logoutUrl;
+	public String getExternalId() {
+		return externalId;
 	}
 
-	public void setLogoutUrl(String logoutUrl) {
-		this.logoutUrl = logoutUrl;
-	}
-
-	public String getEmailAddress() {
-		return emailAddress;
-	}
-
-	public void setEmailAddress(String emailAddress) {
-		this.emailAddress = emailAddress;
+	public void setExternalId(String externalId) {
+		this.externalId = externalId;
 	}
 
 	public String getNickname() {

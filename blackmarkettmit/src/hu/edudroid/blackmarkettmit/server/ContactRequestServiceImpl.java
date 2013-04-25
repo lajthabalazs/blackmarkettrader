@@ -19,7 +19,7 @@ public class ContactRequestServiceImpl  extends RemoteServiceServlet implements 
 
 	@Override
 	public Tupple<Contact, List<Contact>> newRandomContact() throws NotLoggedInException {
-		BlackMarketUser user = UserManager.getCurrentUser();
+		BlackMarketUser user = UserManager.getCurrentUser(getThreadLocalRequest().getSession());
 		if (user == null) {
 			throw new NotLoggedInException();
 		}
@@ -63,7 +63,7 @@ public class ContactRequestServiceImpl  extends RemoteServiceServlet implements 
 
 	@Override
 	public List<Contact> getContacts() throws NotLoggedInException {
-		BlackMarketUser blackMarketUser = UserManager.getCurrentUser();
+		BlackMarketUser blackMarketUser = UserManager.getCurrentUser(getThreadLocalRequest().getSession());
 		if (blackMarketUser != null) {
 			return ContactUtils.getContactsForUser(blackMarketUser.getUserKey());
 		} else {
@@ -73,7 +73,7 @@ public class ContactRequestServiceImpl  extends RemoteServiceServlet implements 
 
 	@Override
 	public Tupple<Integer, List<Contact>> play(String otherPlayerId, int choice) throws NotLoggedInException {
-		BlackMarketUser blackMarketUser = UserManager.getCurrentUser();
+		BlackMarketUser blackMarketUser = UserManager.getCurrentUser(getThreadLocalRequest().getSession());
 		if (blackMarketUser == null) {
 			throw new NotLoggedInException();
 		}
@@ -112,7 +112,7 @@ public class ContactRequestServiceImpl  extends RemoteServiceServlet implements 
 			if (choice == Contact.CHOICE_REJECT) {
 				return new Tupple<Integer, List<Contact>>(PLAY_RESULT_DECLINED, contacts);
 			}
-			contact.addEvent(player,(choice == Contact.CHOICE_COOPERATE?Contact.HISTORY_INVITE_AND_COOP:Contact.HISTORY_INVITE_AND_DEFECT));
+			ContactUtils.addEvent(contact, player,(choice == Contact.CHOICE_COOPERATE?Contact.HISTORY_INVITE_AND_COOP:Contact.HISTORY_INVITE_AND_DEFECT));
 			ContactUtils.save(contact);
 			return new Tupple<Integer, List<Contact>>(PLAY_RESULT_ACCEPTED, contacts);
 		} else {
@@ -125,13 +125,13 @@ public class ContactRequestServiceImpl  extends RemoteServiceServlet implements 
 			// Save result
 			switch (choice) {
 			 case Contact.CHOICE_COOPERATE:
-				 contact.addEvent(player, Contact.HISTORY_REJECT);
+				 ContactUtils.addEvent(contact, player, Contact.HISTORY_REJECT);
 				 break;
 			 case Contact.CHOICE_DEFECT:
-				 contact.addEvent(player, Contact.HISTORY_ACCEPT_AND_DEFECT);
+				 ContactUtils.addEvent(contact, player, Contact.HISTORY_ACCEPT_AND_DEFECT);
 				 break;
 			 case Contact.CHOICE_REJECT:
-				 contact.addEvent(player, Contact.HISTORY_ACCEPT_AND_COOP);
+				 ContactUtils.addEvent(contact, player, Contact.HISTORY_ACCEPT_AND_COOP);
 				 break;
 			}
 			return new Tupple<Integer, List<Contact>>(PLAY_RESULT_ACCEPTED, contacts);
@@ -140,7 +140,7 @@ public class ContactRequestServiceImpl  extends RemoteServiceServlet implements 
 
 	@Override
 	public void askForRecommandation(String otherPlayerId) throws NotLoggedInException {
-		BlackMarketUser blackMarketUser = UserManager.getCurrentUser();
+		BlackMarketUser blackMarketUser = UserManager.getCurrentUser(getThreadLocalRequest().getSession());
 		if (blackMarketUser == null) {
 			throw new NotLoggedInException();
 		}
@@ -159,7 +159,7 @@ public class ContactRequestServiceImpl  extends RemoteServiceServlet implements 
 
 	@Override
 	public List<Contact> getAlligibleContacts(String otherPlayerId) throws NotLoggedInException {
-		BlackMarketUser blackMarketUser = UserManager.getCurrentUser();
+		BlackMarketUser blackMarketUser = UserManager.getCurrentUser(getThreadLocalRequest().getSession());
 		if (blackMarketUser == null) {
 			throw new NotLoggedInException();
 		}
@@ -193,7 +193,7 @@ public class ContactRequestServiceImpl  extends RemoteServiceServlet implements 
 
 	@Override
 	public void suggestContact(String otherPlayerId, String suggestedPlayerId) throws NotLoggedInException {
-		BlackMarketUser blackMarketUser = UserManager.getCurrentUser();
+		BlackMarketUser blackMarketUser = UserManager.getCurrentUser(getThreadLocalRequest().getSession());
 		if (blackMarketUser == null) {
 			throw new NotLoggedInException();
 		}

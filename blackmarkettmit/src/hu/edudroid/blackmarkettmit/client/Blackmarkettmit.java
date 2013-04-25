@@ -12,6 +12,9 @@ import hu.edudroid.blackmarkettmit.shared.PlayerState;
 import hu.edudroid.blackmarkettmit.shared.Tupple;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 
 import com.google.gwt.core.client.EntryPoint;
@@ -78,6 +81,7 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 		getData();
 		initActionPanel();
 		initContactRequestsPanel();
+		initEventsPanel();
 	}
 
 	private void getData() {
@@ -148,6 +152,31 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 		historyScroll.setHeight("400px");
 		requestHolder.add(addContactButton);
 		requestHolder.add(requestPanel);
+	}
+
+	private void initEventsPanel(){
+		RootPanel eventsPanel = RootPanel.get("eventsPanel");
+		ArrayList<Event> events = new ArrayList<Event>();
+		for (Contact contact : contactList) {
+			byte[] tradeHistory = contact.getTradeHistory();
+			for (int i = 0; i < tradeHistory.length; i++) {
+				events.add(new Event(contact, tradeHistory, i));
+			}
+		}
+		VerticalPanel eventsHolder = new VerticalPanel();
+		Collections.sort(events, new Comparator<Event>() {
+
+			@Override
+			public int compare(Event e1, Event e2) {
+				return e1.date.compareTo(e2.date);
+			}
+		});
+		for (Event event : events) {
+			eventsHolder.add(new Label(event.toString()));
+		}
+		ScrollPanel eventsScroll = new ScrollPanel(eventsHolder);
+		eventsScroll.setHeight("400px");
+		eventsPanel.add(eventsScroll);
 	}
 
 	private void updateActionPanel() {
@@ -396,5 +425,30 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 			}
 		});
 		suggestDialog.hide();
+	}
+	
+	private class Event {
+		Contact contact;
+		Date date;
+		int player;
+		byte event;
+
+		@SuppressWarnings("deprecation")
+		public Event(Contact contact, byte[] tradeHistory, int i) {
+			this.contact = contact;
+			this.date = new Date(tradeHistory[i * Contact.TRADE_HISTORY_ENTRY_LENGTH] + Contact.START_YEAR,
+					tradeHistory[i * Contact.TRADE_HISTORY_ENTRY_LENGTH + 1],
+					tradeHistory[i * Contact.TRADE_HISTORY_ENTRY_LENGTH + 2],
+					tradeHistory[i * Contact.TRADE_HISTORY_ENTRY_LENGTH + 3],
+					tradeHistory[i * Contact.TRADE_HISTORY_ENTRY_LENGTH + 4],
+					tradeHistory[i * Contact.TRADE_HISTORY_ENTRY_LENGTH + 5]);
+			this.player = tradeHistory[i * Contact.TRADE_HISTORY_ENTRY_LENGTH + 6];
+			this.event = tradeHistory[i * Contact.TRADE_HISTORY_ENTRY_LENGTH + 7];
+		}
+		
+		@Override
+		public String toString() {
+			return date.toString() + " First > " + contact.getFirstDisplayName() + " Second > " + contact.getSecondDisplayName() + " " + player + " " +  event;
+		}
 	}
 }

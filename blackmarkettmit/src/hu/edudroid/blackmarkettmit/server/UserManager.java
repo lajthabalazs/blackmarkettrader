@@ -1,17 +1,14 @@
 package hu.edudroid.blackmarkettmit.server;
 
+import javax.servlet.http.HttpSession;
+
 import hu.edudroid.blackmarkettmit.shared.BlackMarketUser;
 
-import com.google.appengine.api.users.User;
-import com.google.appengine.api.users.UserService;
-import com.google.appengine.api.users.UserServiceFactory;
-
 public class UserManager {
-	public static BlackMarketUser getCurrentUser() {
-		UserService userService = UserServiceFactory.getUserService();
-		User user = userService.getCurrentUser();
-		if (user!=null) {
-			return BlackMarketUserUtils.getUserByExternalId(user.getEmail());
+	public static BlackMarketUser getCurrentUser(HttpSession session) {
+		String userId = (String) session.getAttribute(FacebookServlet.USER_ID);
+		if (userId != null) {
+			return BlackMarketUserUtils.getUserByExternalId(userId);
 		} else {
 			return null;
 		}

@@ -1,10 +1,10 @@
 package hu.edudroid.blackmarkettmit.server;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-import com.google.appengine.api.datastore.Blob;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
@@ -122,9 +122,9 @@ public class ContactUtils {
 			contact.setSecondPlayerRequestsRecommandation(null);
 		}
 		try{
-			contact.setTradeHistory((Blob) result.getProperty("tradeHistory"));
+			contact.setTradeHistory((byte[]) result.getProperty("tradeHistory"));
 		} catch(Exception e) {
-			contact.setTradeHistory(new Blob(new byte[0]));
+			contact.setTradeHistory(new byte[0]);
 		}
 
 		if (viewerKey.equals(contact.getFirstPlayerKey())) {
@@ -146,4 +146,22 @@ public class ContactUtils {
 		contact.setSecondDebugDisplayName(contactUser.getExternalId());
 		return contact;
 	}
+	
+	public static void addEvent(Contact contact, int player, byte event) {
+		byte[] tradeHistory = contact.getTradeHistory();
+		byte[] newTradeHistory = new byte[tradeHistory.length + Contact.TRADE_HISTORY_ENTRY_LENGTH];
+		System.arraycopy(tradeHistory, 0, newTradeHistory, 0, tradeHistory.length);
+		int position = tradeHistory.length;
+		Calendar calendar = Calendar.getInstance();
+		newTradeHistory[position] = (byte) (calendar.get(Calendar.YEAR) - Contact.START_YEAR);
+		newTradeHistory[position + 1] = (byte) calendar.get(Calendar.MONTH);
+		newTradeHistory[position + 2] = (byte) calendar.get(Calendar.DAY_OF_MONTH);
+		newTradeHistory[position + 3] = (byte) calendar.get(Calendar.HOUR);
+		newTradeHistory[position + 4] = (byte) calendar.get(Calendar.MINUTE);
+		newTradeHistory[position + 5] = (byte) calendar.get(Calendar.SECOND);
+		newTradeHistory[position + 6] = (byte) player;
+		newTradeHistory[position + 7] = event;
+		tradeHistory = newTradeHistory; 
+	}
+
 }

@@ -1,9 +1,10 @@
 package hu.edudroid.blackmarkettmit.shared;
 
 import java.io.Serializable;
+import java.util.Calendar;
 import java.util.Date;
 
-import hu.edudroid.blackmarkettmit.shared.PlayerState;
+import com.google.appengine.api.datastore.Blob;
 
 public class Contact implements Serializable{
 
@@ -12,16 +13,16 @@ public class Contact implements Serializable{
 	public static final int CHOICE_DEFECT = 1;
 	public static final int CHOICE_REJECT = -1;
 	public static final int CHOICE_NONE = -2;
+	public static final byte HISTORY_REJECT = 0;
+	public static final byte HISTORY_INVITE_AND_COOP = 1;
+	public static final byte HISTORY_INVITE_AND_DEFECT = 2;
+	public static final byte HISTORY_ACCEPT_AND_COOP = 3;
+	public static final byte HISTORY_ACCEPT_AND_DEFECT = 4;
 
+	private static final int START_YEAR = 2012;
 	private String entityKey;
 	
 	private int viewer;
-	// Active game
-	private int inGame;
-	private int whoStarted;
-	private int firstPlayerChoice;
-	private int secondPlayerChoice;
-	private Date gameStart;
 	// Credentials
 	private String firstPlayerKey;
 	private String secondPlayerKey;
@@ -32,13 +33,26 @@ public class Contact implements Serializable{
 	// Recommendation requests
 	private Date firstPlayerRequestsRecommandation;
 	private Date secondPlayerRequestsRecommandation;
-	// Statistics	
-	private Date lastSuccessfulTrade;
-	private int gameCount = 0;
-	private int cooperationCount = 0;
-	private int bothDefectCount = 0;
-	private int firstDefectCount = 0;
-	private int secondDefectCount = 0;
+	// Statistics
+	private Blob tradeHistory;
+	
+	public Blob getTradeHistory() {
+		return tradeHistory;
+	}
+
+	public void setTradeHistory(Blob tradeHistory) {
+		this.tradeHistory = tradeHistory;
+	}
+
+	public Blob getContactHistory() {
+		return contactHistory;
+	}
+
+	public void setContactHistory(Blob contactHistory) {
+		this.contactHistory = contactHistory;
+	}
+
+	private Blob contactHistory;
 	
 	public String getEntityKey() {
 		return entityKey;
@@ -54,46 +68,6 @@ public class Contact implements Serializable{
 
 	public void setViewer(int viewer) {
 		this.viewer = viewer;
-	}
-
-	public int getInGame() {
-		return inGame;
-	}
-
-	public void setInGame(int inGame) {
-		this.inGame = inGame;
-	}
-
-	public int getWhoStarted() {
-		return whoStarted;
-	}
-
-	public void setWhoStarted(int whoStarted) {
-		this.whoStarted = whoStarted;
-	}
-
-	public int getFirstPlayerChoice() {
-		return firstPlayerChoice;
-	}
-
-	public void setFirstPlayerChoice(int firstPlayerChoice) {
-		this.firstPlayerChoice = firstPlayerChoice;
-	}
-
-	public int getSecondPlayerChoice() {
-		return secondPlayerChoice;
-	}
-
-	public void setSecondPlayerChoice(int secondPlayerChoice) {
-		this.secondPlayerChoice = secondPlayerChoice;
-	}
-
-	public Date getGameStart() {
-		return gameStart;
-	}
-
-	public void setGameStart(Date gameStart) {
-		this.gameStart = gameStart;
 	}
 
 	public String getFirstPlayerKey() {
@@ -162,77 +136,65 @@ public class Contact implements Serializable{
 		this.secondPlayerRequestsRecommandation = secondPlayerRequestsRecommandation;
 	}
 
-	public Date getLastSuccessfulTrade() {
-		return lastSuccessfulTrade;
-	}
-
-	public void setLastSuccessfulTrade(Date lastSuccessfulTrade) {
-		this.lastSuccessfulTrade = lastSuccessfulTrade;
+	/**
+	 * Examines history's last entry and determines the current state of the connection.
+	 * @return The current state of the connection.
+	 */
+	public PlayerState getState() {
+		byte[] gameHistory = this.tradeHistory.getBytes();
+		if (gameHistory.length == 0) {
+			return PlayerState.NEW;
+		}
+		// Must have history at this point
+		if ((gameHistory[gameHistory.length - 1] == HISTORY_INVITE_AND_COOP)||(gameHistory[gameHistory.length - 1] == HISTORY_INVITE_AND_DEFECT)) {
+			if (((gameHistory[gameHistory.length - 2] == 0)&&(getViewer() == 0)) ||
+					((gameHistory[gameHistory.length - 2] == 1)&&(getViewer() == 1))) { // Actor was viewer
+				return PlayerState.INVITED_HIM;
+			} else {
+				return PlayerState.INVITED_ME;
+			}
+		} else {
+			return PlayerState.NEUTRAL;
+		}
 	}
 
 	public int getGameCount() {
-		return gameCount;
+		return tradeHistory.getBytes().length / 14;
 	}
 
-	public void setGameCount(int gameCount) {
-		this.gameCount = gameCount;
+	public void addEvent(int player, byte event) {
+		byte[] tradeHistory = this.tradeHistory.getBytes();
+		byte[] newTradeHistory = new byte[tradeHistory.length + 7];
+		System.arraycopy(tradeHistory, 0, newTradeHistory, 0, tradeHistory.length);
+		int position = tradeHistory.length;
+		Calendar calendar = Calendar.getInstance();
+		newTradeHistory[position] = (byte) (calendar.get(Calendar.YEAR) - START_YEAR);
+		newTradeHistory[position + 1] = 0;
+		newTradeHistory[position + 2] = 0;
+		newTradeHistory[position + 3] = 0;
+		newTradeHistory[position + 4] = 0;
+		newTradeHistory[position + 5] = (byte) player;
+		newTradeHistory[position + 6] = event;
+		tradeHistory = newTradeHistory; 
 	}
 
-	public int getCooperationCount() {
-		return cooperationCount;
-	}
-
-	public void setCooperationCount(int cooperationCount) {
-		this.cooperationCount = cooperationCount;
-	}
-
-	public int getBothDefectCount() {
-		return bothDefectCount;
-	}
-
-	public void setBothDefectCount(int bothDefectCount) {
-		this.bothDefectCount = bothDefectCount;
-	}
-
-	public int getFirstDefectCount() {
-		return firstDefectCount;
-	}
-
-	public void setFirstDefectCount(int firstDefectCount) {
-		this.firstDefectCount = firstDefectCount;
-	}
-
-	public int getSecondDefectCount() {
-		return secondDefectCount;
-	}
-
-	public void setSecondDefectCount(int secondDefectCount) {
-		this.secondDefectCount = secondDefectCount;
-	}
-
-	public PlayerState getState() {
-		PlayerState state = PlayerState.NEW;
-		
-		if (getGameCount() > 0) {
-			state = PlayerState.NEUTRAL;
-		}
-		if (getViewer() == 0) {
-			if (getInGame() == 1) {
-				if (getWhoStarted() == 0) {
-					state = PlayerState.INVITED_HIM;
-				} else {
-					state = PlayerState.INVITED_ME;
-				}
-			}
+	public boolean isLastTradeClosed() {
+		byte[] tradeHistory = this.tradeHistory.getBytes();
+		if (tradeHistory == null || tradeHistory.length == 0) {
+			return true;
 		} else {
-			if (getInGame() == 1) {
-				if (getWhoStarted() == 0) {
-					state = PlayerState.INVITED_ME;
-				} else {
-					state = PlayerState.INVITED_HIM;
-				}
-			}
+			return ((tradeHistory[tradeHistory.length - 1] == Contact.HISTORY_ACCEPT_AND_COOP) ||
+					(tradeHistory[tradeHistory.length - 1] == Contact.HISTORY_ACCEPT_AND_DEFECT)||
+					(tradeHistory[tradeHistory.length - 1] == Contact.HISTORY_REJECT)); 
 		}
-		return state;
+	}
+
+	public int getWhoStarted() {
+		if (isLastTradeClosed()) {
+			return -1;
+		} else {
+			byte[] tradeHistory = this.tradeHistory.getBytes();
+			return tradeHistory[tradeHistory.length - 2]; 
+		}
 	}
 }

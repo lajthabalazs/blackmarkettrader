@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import com.google.appengine.api.datastore.Blob;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
@@ -18,7 +19,6 @@ import com.google.appengine.api.datastore.Query.CompositeFilterOperator;
 
 import hu.edudroid.blackmarkettmit.shared.BlackMarketUser;
 import hu.edudroid.blackmarkettmit.shared.Contact;
-import hu.edudroid.blackmarkettmit.shared.PlayerState;
 
 public class ContactUtils {
 	
@@ -84,11 +84,8 @@ public class ContactUtils {
 		if (entity == null) {
 			entity = new Entity("Contact");
 		}
-		entity.setProperty("inGame", contact.getInGame());
-		entity.setProperty("whoStarted", contact.getWhoStarted());
-		entity.setProperty("firstPlayerChoice", contact.getFirstPlayerChoice());
-		entity.setProperty("secondPlayerChoice", contact.getSecondPlayerChoice());
-		entity.setProperty("gameStart", contact.getGameStart());
+		// Add history to entity
+		entity.setProperty("tradeHistory", contact.getTradeHistory());
 
 		entity.setProperty("firstPlayerKey", contact.getFirstPlayerKey());
 		entity.setProperty("secondPlayerKey", contact.getSecondPlayerKey());
@@ -100,42 +97,12 @@ public class ContactUtils {
 		entity.setProperty("firstPlayerRequestsRecommandation",contact.getFirstPlayerRequestsRecommandation());
 		entity.setProperty("secondPlayerRequestsRecommandation",contact.getSecondPlayerRequestsRecommandation());
 
-		entity.setProperty("gameCount", contact.getGameCount());
-		entity.setProperty("cooperationCount", contact.getCooperationCount());
-		entity.setProperty("bothDefectCount", contact.getBothDefectCount());
-		entity.setProperty("firstDefectCount", contact.getFirstDefectCount());
-		entity.setProperty("secondDefectCount", contact.getSecondDefectCount());
 		datastore.put(entity);		
 	}
 
 	public static Contact createFromEntity(Entity result, String viewerKey) {
 		Contact contact = new Contact();
 		contact.setEntityKey(KeyFactory.keyToString(result.getKey()));
-		try {
-			contact.setInGame((int)((Long)result.getProperty("inGame")).longValue());
-		} catch (Exception e) {
-			contact.setInGame(0);
-		}
-		try {
-			contact.setWhoStarted((int)((Long)result.getProperty("whoStarted")).longValue());
-		} catch (Exception e) {
-			contact.setWhoStarted(-1);
-		}
-		try {
-			contact.setFirstPlayerChoice((int)((Long)result.getProperty("firstPlayerChoice")).longValue());
-		} catch (Exception e) {
-			contact.setFirstPlayerChoice(Contact.CHOICE_NONE);
-		}
-		try {
-			contact.setSecondPlayerChoice((int)((Long)result.getProperty("secondPlayerChoice")).longValue());
-		} catch (Exception e) {
-			contact.setSecondPlayerChoice(Contact.CHOICE_NONE);
-		}
-		try {
-			contact.setGameStart((Date)result.getProperty("gameStart"));
-		} catch (Exception e) {
-			contact.setGameStart(null);
-		}
 
 		contact.setFirstPlayerKey((String)result.getProperty("firstPlayerKey"));
 		contact.setSecondPlayerKey((String)result.getProperty("secondPlayerKey"));
@@ -154,12 +121,11 @@ public class ContactUtils {
 		} else {
 			contact.setSecondPlayerRequestsRecommandation(null);
 		}
-
-		contact.setGameCount((int)((Long)result.getProperty("gameCount")).longValue());
-		contact.setCooperationCount((int)((Long)result.getProperty("cooperationCount")).longValue());
-		contact.setBothDefectCount((int)((Long)result.getProperty("bothDefectCount")).longValue());
-		contact.setFirstDefectCount((int)((Long)result.getProperty("firstDefectCount")).longValue());
-		contact.setSecondDefectCount((int)((Long)result.getProperty("secondDefectCount")).longValue());
+		try{
+			contact.setTradeHistory((Blob) result.getProperty("tradeHistory"));
+		} catch(Exception e) {
+			contact.setTradeHistory(new Blob(new byte[0]));
+		}
 
 		if (viewerKey.equals(contact.getFirstPlayerKey())) {
 			contact.setViewer(0);

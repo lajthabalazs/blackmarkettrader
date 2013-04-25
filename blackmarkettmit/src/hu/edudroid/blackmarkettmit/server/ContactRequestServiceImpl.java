@@ -104,71 +104,37 @@ public class ContactRequestServiceImpl  extends RemoteServiceServlet implements 
 		if ((choice != Contact.CHOICE_COOPERATE) && (choice != Contact.CHOICE_DEFECT) && (choice != Contact.CHOICE_REJECT)) {
 			return new Tupple<Integer, List<Contact>>(PLAY_RESULT_DECLINED, contacts);
 		}
-		if (choice == Contact.CHOICE_REJECT) {
-			contact.setInGame(0);
-			contact.setWhoStarted(-1);
-			ContactUtils.save(contact);
-			return new Tupple<Integer, List<Contact>>(PLAY_RESULT_ACCEPTED, contacts);
-		}
-		if (contact.getInGame() == 0) {
+		int player = contact.getViewer();
+		// Process request
+		if (contact.isLastTradeClosed()) {			
 			// New game
-			contact.setInGame(1);
-			contact.setGameStart(new Date());
-			int viewer = contact.getViewer();
-			if (viewer == 0) {
-				contact.setWhoStarted(0);
-				contact.setFirstPlayerChoice(choice);
-			} else {
-				contact.setWhoStarted(1);
-				contact.setSecondPlayerChoice(choice);
+			// Can't reject when no game
+			if (choice == Contact.CHOICE_REJECT) {
+				return new Tupple<Integer, List<Contact>>(PLAY_RESULT_DECLINED, contacts);
 			}
+			contact.addEvent(player,(choice == Contact.CHOICE_COOPERATE?Contact.HISTORY_INVITE_AND_COOP:Contact.HISTORY_INVITE_AND_DEFECT));
 			ContactUtils.save(contact);
 			return new Tupple<Integer, List<Contact>>(PLAY_RESULT_ACCEPTED, contacts);
 		} else {
 			// Old game
-			// User want's to change his choice
+			// User initiated, user can't change his choice
 			if (contact.getWhoStarted() == contact.getViewer()) {
 				return new Tupple<Integer, List<Contact>>(PLAY_RESULT_DECLINED, contacts);
 			}
 			// User responds
-			contact.setInGame(0);
-			int viewer = contact.getViewer();
-			if (viewer == 0) {
-				contact.setFirstPlayerChoice(choice);
-			} else {
-				contact.setSecondPlayerChoice(choice);
+			// Save result
+			switch (choice) {
+			 case Contact.CHOICE_COOPERATE:
+				 contact.addEvent(player, Contact.HISTORY_REJECT);
+				 break;
+			 case Contact.CHOICE_DEFECT:
+				 contact.addEvent(player, Contact.HISTORY_ACCEPT_AND_DEFECT);
+				 break;
+			 case Contact.CHOICE_REJECT:
+				 contact.addEvent(player, Contact.HISTORY_ACCEPT_AND_COOP);
+				 break;
 			}
-			// Evaluate result
-			contact.setGameCount(contact.getGameCount() + 1);
-			if (contact.getFirstPlayerChoice() == Contact.CHOICE_COOPERATE) {
-				if (contact.getSecondPlayerChoice() == Contact.CHOICE_COOPERATE) {
-					contact.setCooperationCount(contact.getCooperationCount() + 1);
-					ContactUtils.save(contact);
-					return new Tupple<Integer, List<Contact>>(PLAY_RESULT_COOPERATE, contacts);
-				}else {
-					contact.setSecondDefectCount(contact.getSecondDefectCount() + 1);
-					ContactUtils.save(contact);
-					if (viewer == 0) {
-						return new Tupple<Integer, List<Contact>>(PLAY_RESULT_HE_DEFECTED, contacts);
-					} else {
-						return new Tupple<Integer, List<Contact>>(PLAY_RESULT_I_DEFECTED, contacts);
-					}
-				}
-			} else {
-				if (contact.getSecondPlayerChoice() == Contact.CHOICE_COOPERATE) {
-					contact.setFirstDefectCount(contact.getFirstDefectCount() + 1);
-					ContactUtils.save(contact);
-					if (viewer == 0) {
-						return new Tupple<Integer, List<Contact>>(PLAY_RESULT_I_DEFECTED, contacts);
-					} else {
-						return new Tupple<Integer, List<Contact>>(PLAY_RESULT_HE_DEFECTED, contacts);
-					}
-				}else {
-					contact.setBothDefectCount(contact.getBothDefectCount() + 1);
-					ContactUtils.save(contact);
-					return new Tupple<Integer, List<Contact>>(PLAY_RESULT_BOTH_DEFECTED, contacts);
-				}
-			}
+			return new Tupple<Integer, List<Contact>>(PLAY_RESULT_ACCEPTED, contacts);
 		}
 	}
 

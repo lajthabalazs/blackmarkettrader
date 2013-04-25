@@ -167,27 +167,11 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 						new Label(player.getSecondDebugDisplayName()));
 				actionTable.setWidget(nextRow, 1,
 						new Label("" + player.getGameCount()));
-				actionTable.setWidget(nextRow, 2,
-						new Label("" + player.getCooperationCount()));
-				actionTable.setWidget(nextRow, 3,
-						new Label("" + player.getBothDefectCount()));
-				actionTable.setWidget(nextRow, 4,
-						new Label("" + player.getSecondDefectCount()));
-				actionTable.setWidget(nextRow, 5,
-						new Label("" + player.getFirstDefectCount()));
 			} else {
 				actionTable.setWidget(nextRow, 0,
 						new Label(player.getFirstDebugDisplayName()));
 				actionTable.setWidget(nextRow, 1,
 						new Label("" + player.getGameCount()));
-				actionTable.setWidget(nextRow, 2,
-						new Label("" + player.getCooperationCount()));
-				actionTable.setWidget(nextRow, 3,
-						new Label("" + player.getBothDefectCount()));
-				actionTable.setWidget(nextRow, 4,
-						new Label("" + player.getFirstDefectCount()));
-				actionTable.setWidget(nextRow, 5,
-						new Label("" + player.getSecondDefectCount()));
 			}
 			if (player.getState() == PlayerState.INVITED_HIM) {
 				actionTable

@@ -37,7 +37,14 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 		ClickHandler, TradeActionHandler, SuggestListener {
 	private GetContactDialog getContactDialog;
-	private static final String VERSION = "1";
+	private static final String VERSION = "2 / reversed history";
+	private static final Comparator<Event> CONTACT_COMPARATOR = new Comparator<Event>() {
+
+			@Override
+			public int compare(Event e1, Event e2) {
+				return (-1) * e1.dateString.compareTo(e2.dateString);
+			}
+		};
 	private Button addContactButton;
 	private List<Contact> contactList;
 	private LoginInfo loginInfo;
@@ -174,13 +181,7 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 			}
 		}
 		VerticalPanel eventsHolder = new VerticalPanel();
-		Collections.sort(events, new Comparator<Event>() {
-
-			@Override
-			public int compare(Event e1, Event e2) {
-				return e1.dateString.compareTo(e2.dateString);
-			}
-		});
+		Collections.sort(events, CONTACT_COMPARATOR);
 		for (Event event : events) {
 			eventsHolder.add(new Label(event.toString()));
 		}

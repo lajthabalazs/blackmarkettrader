@@ -6,10 +6,12 @@ public class LoginInfo implements Serializable {
 
 	private static final long serialVersionUID = 8010763846801676585L;
 	private boolean loggedIn = false;
-	private String loginUrl;
+	private String loginWithFacebookUrl;
+	private String loginWithGoogleUrl;
 	private String externalId;
 	private String nickname;
 	private BlackMarketUser blackMarketUser;
+	private String logoutUrl;
 
 	public boolean isLoggedIn() {
 		return loggedIn;
@@ -19,14 +21,22 @@ public class LoginInfo implements Serializable {
 		this.loggedIn = loggedIn;
 	}
 
-	public String getLoginUrl() {
-		return loginUrl;
+	public String getLoginWithFacebookUrl() {
+		return loginWithFacebookUrl;
 	}
 
-	public void setLoginUrl(String loginUrl) {
-		this.loginUrl = loginUrl;
+	public void setLoginWithFacebookUrl(String loginWithFacebookUrl) {
+		this.loginWithFacebookUrl = loginWithFacebookUrl;
 	}
 
+	public String getLoginWithGoogleUrl() {
+		return loginWithGoogleUrl;
+	}
+
+	public void setLoginWithGoogleUrl(String loginWithGoogleUrl) {
+		this.loginWithGoogleUrl = loginWithGoogleUrl;
+	}
+	
 	public String getExternalId() {
 		return externalId;
 	}
@@ -49,5 +59,13 @@ public class LoginInfo implements Serializable {
 
 	public void setBlackMarketUser(BlackMarketUser blackMarketUser) {
 		this.blackMarketUser = blackMarketUser;
+	}
+
+	public String getLogoutUrl() {
+		return logoutUrl;
+	}
+
+	public void setLogoutUrl(String logoutUrl) {
+		this.logoutUrl = logoutUrl;
 	}
 }

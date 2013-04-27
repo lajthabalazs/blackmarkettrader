@@ -5,6 +5,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import com.google.appengine.api.datastore.Blob;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
@@ -23,6 +24,7 @@ import hu.edudroid.blackmarkettmit.shared.Contact;
 public class ContactUtils {
 	
 	public static List<Contact> getContactsForUser(String blackMarketUserKey) {
+		System.out.println("Contact.getContactsForUser");
 		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 		Filter firstPlayerFilter = new FilterPredicate("firstPlayerKey", FilterOperator.EQUAL, blackMarketUserKey);
 		Filter secondPlayerFilter = new FilterPredicate("secondPlayerKey", FilterOperator.EQUAL, blackMarketUserKey);
@@ -34,15 +36,16 @@ public class ContactUtils {
 		// Use PreparedQuery interface to retrieve results
 		PreparedQuery pq = datastore.prepare(q);
 		List<Contact> contacts = new ArrayList<Contact>();
-		System.out.println("Requested contacts for " + blackMarketUserKey);
 		for (Entity result : pq.asIterable()) {
 			Contact contact = createFromEntity(result, blackMarketUserKey);
 			contacts.add(contact);
 		}
+		System.out.println("Total of " + contacts.size() + " contacts found.");
 		return contacts;
 	}
 
 	public static Contact getContactForUsers(String playerId, String otherPlayerId) {
+		System.out.println("Contact.getContactForUsers");
 		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 		Filter firstOrderFirstFilter = new FilterPredicate("firstPlayerKey", FilterOperator.EQUAL, playerId);
 		Filter firstOrderSecondFilter = new FilterPredicate("secondPlayerKey", FilterOperator.EQUAL, otherPlayerId);
@@ -71,6 +74,7 @@ public class ContactUtils {
 	}
 	
 	public static void save(Contact contact) {
+		System.out.println("Contact.save");
 		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 		Entity entity = null;
 		try {
@@ -85,7 +89,10 @@ public class ContactUtils {
 			entity = new Entity("Contact");
 		}
 		// Add history to entity
-		entity.setProperty("tradeHistory", contact.getTradeHistory());
+		if (contact.getTradeHistory()!=null) {
+			System.out.println("Saving history of length " + contact.getTradeHistory().length);
+			entity.setProperty("tradeHistory", new Blob(contact.getTradeHistory()));
+		}
 
 		entity.setProperty("firstPlayerKey", contact.getFirstPlayerKey());
 		entity.setProperty("secondPlayerKey", contact.getSecondPlayerKey());
@@ -101,6 +108,7 @@ public class ContactUtils {
 	}
 
 	public static Contact createFromEntity(Entity result, String viewerKey) {
+		System.out.println("Contact.createFromEntity");
 		Contact contact = new Contact();
 		contact.setEntityKey(KeyFactory.keyToString(result.getKey()));
 
@@ -122,8 +130,9 @@ public class ContactUtils {
 			contact.setSecondPlayerRequestsRecommandation(null);
 		}
 		try{
-			contact.setTradeHistory((byte[]) result.getProperty("tradeHistory"));
+			contact.setTradeHistory(((Blob) result.getProperty("tradeHistory")).getBytes());
 		} catch(Exception e) {
+			System.out.println("Error loading history");
 			contact.setTradeHistory(new byte[0]);
 		}
 
@@ -136,6 +145,7 @@ public class ContactUtils {
 	}
 
 	public static Contact createContact(BlackMarketUser user, BlackMarketUser contactUser) {
+		System.out.println("Contact.createContact");
 		Contact contact = new Contact();
 		contact.setViewer(0);
 		contact.setFirstPlayerKey(user.getUserKey());
@@ -148,6 +158,7 @@ public class ContactUtils {
 	}
 	
 	public static void addEvent(Contact contact, int player, byte event) {
+		System.out.println("Contact.addEvent history length " + contact.getTradeHistory().length);
 		byte[] tradeHistory = contact.getTradeHistory();
 		byte[] newTradeHistory = new byte[tradeHistory.length + Contact.TRADE_HISTORY_ENTRY_LENGTH];
 		System.arraycopy(tradeHistory, 0, newTradeHistory, 0, tradeHistory.length);
@@ -161,7 +172,8 @@ public class ContactUtils {
 		newTradeHistory[position + 5] = (byte) calendar.get(Calendar.SECOND);
 		newTradeHistory[position + 6] = (byte) player;
 		newTradeHistory[position + 7] = event;
-		tradeHistory = newTradeHistory; 
+		contact.setTradeHistory(newTradeHistory); 
+		System.out.println("Contact.addEvent new history length " + contact.getTradeHistory().length);
 	}
 
 }

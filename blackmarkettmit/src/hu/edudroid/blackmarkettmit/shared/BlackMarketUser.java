@@ -7,6 +7,7 @@ public class BlackMarketUser implements Serializable{
 	private static final long serialVersionUID = -8822523082905084208L;
 	private String userKey;
 	private String externalId;
+	private String userName;
 	private float random;
 	
 	public BlackMarketUser() {
@@ -25,6 +26,13 @@ public class BlackMarketUser implements Serializable{
 	}
 	public void setExternalId(String externalId) {
 		this.externalId = externalId;
+	}
+	public String getUserName() {
+		return userName;
+	}
+
+	public void setUserName(String userName) {
+		this.userName = userName;
 	}
 	public float getRandom() {
 		return random;

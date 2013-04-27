@@ -1,7 +1,11 @@
-package hu.edudroid.blackmarkettmit.shared;
+package hu.edudroid.blackmarkettmit.server;
+
+import hu.edudroid.blackmarkettmit.shared.PlayerState;
 
 import java.io.Serializable;
 import java.util.Date;
+
+import com.google.appengine.api.datastore.Blob;
 
 public class Contact implements Serializable{
 
@@ -15,7 +19,6 @@ public class Contact implements Serializable{
 	public static final byte HISTORY_INVITE_AND_DEFECT = 2;
 	public static final byte HISTORY_ACCEPT_AND_COOP = 3;
 	public static final byte HISTORY_ACCEPT_AND_DEFECT = 4;
-	public static final byte HISTORY_INVALID = -1;
 
 	public static final int TRADE_HISTORY_ENTRY_LENGTH = 8;
 	public static final int START_YEAR = 2012;
@@ -34,26 +37,26 @@ public class Contact implements Serializable{
 	private Date firstPlayerRequestsRecommandation;
 	private Date secondPlayerRequestsRecommandation;
 	// Statistics
-	private byte[] tradeHistory;
-	private byte[] contactHistory;
+	private Blob tradeHistory;
+	private Blob contactHistory;
 	
 	
-	public byte[] getTradeHistory() {
+	public Blob getTradeHistory() {
 		if (tradeHistory == null) {
-			tradeHistory = new byte[0];
+			tradeHistory = new Blob(new byte[0]);
 		}
 		return tradeHistory;
 	}
 
-	public void setTradeHistory(byte[] tradeHistory) {
+	public void setTradeHistory(Blob tradeHistory) {
 		this.tradeHistory = tradeHistory;
 	}
 
-	public byte[] getContactHistory() {
+	public Blob getContactHistory() {
 		return contactHistory;
 	}
 
-	public void setContactHistory(byte[] contactHistory) {
+	public void setContactHistory(Blob contactHistory) {
 		this.contactHistory = contactHistory;
 	}
 
@@ -144,12 +147,14 @@ public class Contact implements Serializable{
 	 * @return The current state of the connection.
 	 */
 	public PlayerState getState() {
-		if (tradeHistory == null || tradeHistory.length == 0) {
+		if (tradeHistory == null || tradeHistory.getBytes().length == 0) {
 			return PlayerState.NEW;
 		}
 		// Must have history at this point
+		byte[] tradeHistory = this.tradeHistory.getBytes();
 		if ((tradeHistory[tradeHistory.length - 1] == HISTORY_INVITE_AND_COOP)||(tradeHistory[tradeHistory.length - 1] == HISTORY_INVITE_AND_DEFECT)) {
-			if (tradeHistory[tradeHistory.length - 2] == getViewer()) { // Actor was viewer
+			if (((tradeHistory[tradeHistory.length - 2] == 0)&&(getViewer() == 0)) ||
+					((tradeHistory[tradeHistory.length - 2] == 1)&&(getViewer() == 1))) { // Actor was viewer
 				return PlayerState.INVITED_HIM;
 			} else {
 				return PlayerState.INVITED_ME;
@@ -163,16 +168,17 @@ public class Contact implements Serializable{
 		if (tradeHistory == null) {
 			return 0;
 		}
-		return tradeHistory.length / (TRADE_HISTORY_ENTRY_LENGTH * 2);
+		return tradeHistory.getBytes().length / TRADE_HISTORY_ENTRY_LENGTH;
 	}
 
 	public boolean isLastTradeClosed() {
-		if (tradeHistory == null || tradeHistory.length == 0) {
+		if (tradeHistory == null || tradeHistory.getBytes().length == 0) {
 			return true;
 		} else {
-			int length = tradeHistory.length;
-			int firstComparable = (length / (2 * TRADE_HISTORY_ENTRY_LENGTH)) * 2 * TRADE_HISTORY_ENTRY_LENGTH;
-			return firstComparable == length; 
+			byte[] tradeHistory = this.tradeHistory.getBytes();
+			return ((tradeHistory[tradeHistory.length - 1] == Contact.HISTORY_ACCEPT_AND_COOP) ||
+					(tradeHistory[tradeHistory.length - 1] == Contact.HISTORY_ACCEPT_AND_DEFECT)||
+					(tradeHistory[tradeHistory.length - 1] == Contact.HISTORY_REJECT)); 
 		}
 	}
 
@@ -180,6 +186,7 @@ public class Contact implements Serializable{
 		if (isLastTradeClosed()) {
 			return -1;
 		} else {
+			byte[] tradeHistory = this.tradeHistory.getBytes();
 			return tradeHistory[tradeHistory.length - 2]; 
 		}
 	}

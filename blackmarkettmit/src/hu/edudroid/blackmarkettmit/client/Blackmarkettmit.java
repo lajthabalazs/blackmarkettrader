@@ -14,7 +14,6 @@ import hu.edudroid.blackmarkettmit.shared.Tupple;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 
 import com.google.gwt.core.client.EntryPoint;
@@ -38,11 +37,11 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 		ClickHandler, TradeActionHandler, SuggestListener {
 	private GetContactDialog getContactDialog;
+	private static final String VERSION = "1";
 	private Button addContactButton;
 	private List<Contact> contactList;
 	private LoginInfo loginInfo;
 
-	private Anchor signInLink;
 	private FlexTable actionTable;
 	private VerticalPanel requestPanel;
 	ContactRequestServiceAsync contactRequestsService = GWT.create(ContactRequestService.class);
@@ -51,14 +50,14 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 	
 	public void onModuleLoad() {
 		refreshLoginPanel();
-		login();
+		checkIfLoggedIn();
 	}
-
-	private void login() {
+	
+	public void checkIfLoggedIn(){
 		final ProgressDialog dialog = new ProgressDialog("Authenticating", "This might take a few seconds. Kick back and relax!");
 		// Check login status using login service.
 		LoginServiceAsync loginService = GWT.create(LoginService.class);
-		loginService.login(GWT.getHostPageBaseURL(), new AsyncCallback<LoginInfo>() {
+		loginService.checkIfLoggedIn(GWT.getHostPageBaseURL(), new AsyncCallback<LoginInfo>() {
 
 			public void onFailure(Throwable error) {
 				dialog.hide();
@@ -78,10 +77,9 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 
 	private void init() {
 		refreshLoginPanel();
-		getData();
 		initActionPanel();
 		initContactRequestsPanel();
-		initEventsPanel();
+		getData();
 	}
 
 	private void getData() {
@@ -105,25 +103,35 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 	private void updateUI() {
 		updateActionPanel();
 		updateRequestsPanel();
+		updateEventsPanel();
 	}
 
 	private void refreshLoginPanel(){
 		RootPanel loginHolder = RootPanel.get("loginHolder");
 		loginHolder.clear();
+		VerticalPanel loginPanel = new VerticalPanel();
+		loginPanel.add(new Label("Version " + VERSION));
 		if (loginInfo == null || !loginInfo.isLoggedIn()) {
 			// Assemble login panel.
-			VerticalPanel loginPanel = new VerticalPanel();
-			loginPanel.add(new Label("Log in with Facebook!"));
+			loginPanel.add(new Label("Log in with Facebook or Google!"));
 			if (loginInfo != null) {
-				signInLink = new Anchor("Sign In");
-				signInLink.setHref(loginInfo.getLoginUrl());
-				loginPanel.add(signInLink);
+				Anchor signInWithFacebookLink = new Anchor("Sign In with Facebook");
+				signInWithFacebookLink.setHref(loginInfo.getLoginWithFacebookUrl());
+				loginPanel.add(signInWithFacebookLink);
+				Anchor signInWithGoogleLink = new Anchor("Sign In with Google");
+				signInWithGoogleLink.setHref(loginInfo.getLoginWithGoogleUrl());
+				loginPanel.add(signInWithGoogleLink);
 			}
-			loginHolder.add(loginPanel);
 		} else {
 			Label userNameLabel = new Label("Hello " + loginInfo.getNickname() + "!");
-			loginHolder.add(userNameLabel);
+			loginPanel.add(userNameLabel);
+			if (loginInfo.getLogoutUrl() != null) {
+				Anchor signOutLink = new Anchor("Sign Out");
+				signOutLink.setHref(loginInfo.getLogoutUrl());
+				loginPanel.add(signOutLink);
+			}
 		}
+		loginHolder.add(loginPanel);
 	}
 	
 	private void initActionPanel(){
@@ -132,11 +140,8 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 		DOM.setElementAttribute(actionTable.getElement(), "id", "actionTable");
 		actionTable.setWidget(0, 0, new Label("Player name"));
 		actionTable.setWidget(0, 1, new Label("Games"));
-		actionTable.setWidget(0, 2, new Label("Co-op"));
-		actionTable.setWidget(0, 3, new Label("Defeat"));
-		actionTable.setWidget(0, 4, new Label("I lost"));
-		actionTable.setWidget(0, 5, new Label("I won"));
-		actionTable.setWidget(0, 6, new Label("Action"));
+		actionTable.setWidget(0, 2, new Label("Total profit"));
+		actionTable.setWidget(0, 3, new Label("Action"));
 		DOM.setElementAttribute(actionTable.getRowFormatter().getElement(0), "id", "actionTableHeader");
 		ScrollPanel actionTableScroll = new ScrollPanel(actionTable);
 		actionTableScroll.setHeight("400px");
@@ -154,13 +159,18 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 		requestHolder.add(requestPanel);
 	}
 
-	private void initEventsPanel(){
+	private void updateEventsPanel(){
 		RootPanel eventsPanel = RootPanel.get("eventsPanel");
+		eventsPanel.clear();
 		ArrayList<Event> events = new ArrayList<Event>();
 		for (Contact contact : contactList) {
 			byte[] tradeHistory = contact.getTradeHistory();
-			for (int i = 0; i < tradeHistory.length; i++) {
-				events.add(new Event(contact, tradeHistory, i));
+			int eventCount = tradeHistory.length / (Contact.TRADE_HISTORY_ENTRY_LENGTH * 2);
+			if (tradeHistory.length != eventCount * 2 * Contact.TRADE_HISTORY_ENTRY_LENGTH) {
+				eventCount ++;
+			}
+			for (int i = 0; i < eventCount; i++) {
+				events.add(new Event(contact, i));
 			}
 		}
 		VerticalPanel eventsHolder = new VerticalPanel();
@@ -168,7 +178,7 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 
 			@Override
 			public int compare(Event e1, Event e2) {
-				return e1.date.compareTo(e2.date);
+				return e1.dateString.compareTo(e2.dateString);
 			}
 		});
 		for (Event event : events) {
@@ -191,17 +201,12 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 		java.util.Collections.sort(contactList, new ContactComparator());
 		for (Contact player : contactList) {
 			int nextRow = actionTable.getRowCount();
-			if (player.getViewer() == 0) {
-				actionTable.setWidget(nextRow, 0,
-						new Label(player.getSecondDebugDisplayName()));
-				actionTable.setWidget(nextRow, 1,
-						new Label("" + player.getGameCount()));
-			} else {
-				actionTable.setWidget(nextRow, 0,
-						new Label(player.getFirstDebugDisplayName()));
-				actionTable.setWidget(nextRow, 1,
-						new Label("" + player.getGameCount()));
-			}
+			actionTable.setWidget(nextRow, 0,
+					new Label(player.getSecondDisplayName()));
+			actionTable.setWidget(nextRow, 1,
+					new Label("G: " + player.getGameCount() + " TH: " + player.getTradeHistory().length));
+			actionTable.setWidget(nextRow, 2,
+					new Label(player.getSecondDisplayName()));
 			if (player.getState() == PlayerState.INVITED_HIM) {
 				actionTable
 						.setWidget(nextRow, 6, new Label("Waiting response"));
@@ -265,9 +270,9 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 				} else {
 					String contactName = "";
 					if (result.getFirst().getViewer() == 0) {
-						contactName = result.getFirst().getSecondDebugDisplayName();
+						contactName = result.getFirst().getSecondDisplayName();
 					} else {
-						contactName = result.getFirst().getFirstDebugDisplayName();
+						contactName = result.getFirst().getFirstDisplayName();
 					}
 					new MessageDialog("Meet " + contactName + "!", "This is the beginning of a beautiful friendship..");
 				}
@@ -323,10 +328,10 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 		String name;
 		if (player.getViewer() == 0) {
 			otherPlayer = player.getSecondPlayerKey();
-			name = player.getSecondDebugDisplayName();
+			name = player.getSecondDisplayName();
 		} else {
 			otherPlayer = player.getFirstPlayerKey();
-			name = player.getFirstDebugDisplayName();
+			name = player.getFirstDisplayName();
 		}
 		final String otherPlayerName = name;
 		final ProgressDialog dialog = new ProgressDialog("Processing action", "This might take a few seconds. Kick back and relax!");
@@ -429,26 +434,99 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 	
 	private class Event {
 		Contact contact;
-		Date date;
 		int player;
 		byte event;
+		byte previousEvent;
+		String dateString;
 
-		@SuppressWarnings("deprecation")
-		public Event(Contact contact, byte[] tradeHistory, int i) {
+		public Event(Contact contact, int index) {
+			byte[] tradeHistory = contact.getTradeHistory();
 			this.contact = contact;
-			this.date = new Date(tradeHistory[i * Contact.TRADE_HISTORY_ENTRY_LENGTH] + Contact.START_YEAR,
-					tradeHistory[i * Contact.TRADE_HISTORY_ENTRY_LENGTH + 1],
-					tradeHistory[i * Contact.TRADE_HISTORY_ENTRY_LENGTH + 2],
-					tradeHistory[i * Contact.TRADE_HISTORY_ENTRY_LENGTH + 3],
-					tradeHistory[i * Contact.TRADE_HISTORY_ENTRY_LENGTH + 4],
-					tradeHistory[i * Contact.TRADE_HISTORY_ENTRY_LENGTH + 5]);
-			this.player = tradeHistory[i * Contact.TRADE_HISTORY_ENTRY_LENGTH + 6];
-			this.event = tradeHistory[i * Contact.TRADE_HISTORY_ENTRY_LENGTH + 7];
+			int startPosition = index * Contact.TRADE_HISTORY_ENTRY_LENGTH * 2;
+			if (startPosition + Contact.TRADE_HISTORY_ENTRY_LENGTH * 2 <= tradeHistory.length) {
+				previousEvent = tradeHistory[startPosition + 7];
+				startPosition = startPosition + Contact.TRADE_HISTORY_ENTRY_LENGTH;
+			} else {
+				previousEvent = Contact.HISTORY_INVALID;
+			}
+			dateString = "" + (tradeHistory[startPosition] + Contact.START_YEAR);
+			dateString = dateString + "-" + tradeHistory[startPosition + 1];
+			dateString = dateString + "-" + tradeHistory[startPosition + 2];
+			dateString = dateString + " " + tradeHistory[startPosition + 3];
+			dateString = dateString + ":" + tradeHistory[startPosition + 4];
+			dateString = dateString + ":" + tradeHistory[startPosition + 5];
+			this.player = tradeHistory[startPosition + 6];
+			this.event = tradeHistory[startPosition + 7];
 		}
 		
 		@Override
 		public String toString() {
-			return date.toString() + " First > " + contact.getFirstDisplayName() + " Second > " + contact.getSecondDisplayName() + " " + player + " " +  event;
+			String base =  byteArrayToDisplayString(contact.getTradeHistory());
+			String playerName = contact.getSecondDisplayName();
+			if (contact.getViewer() != 0) {
+				playerName = contact.getFirstDisplayName();
+			}
+			if (player != contact.getViewer()) {
+				base = base + " not my event ";
+				if ((event == Contact.HISTORY_INVITE_AND_COOP)||(event == Contact.HISTORY_INVITE_AND_DEFECT)) {
+					return base + " " + dateString + " - " + playerName + " invited you to trade.";
+				} else if (event == Contact.HISTORY_REJECT) {
+					return base + " " +  dateString + " - " + playerName + " rejected your invitation.";
+				} else {
+					base = base + " response ";
+					if (event == Contact.HISTORY_ACCEPT_AND_COOP) {
+						if (previousEvent == Contact.HISTORY_INVITE_AND_COOP) {
+							return base + " " +  dateString + " - " + playerName + " and you both cooperated.";	
+						} else if (previousEvent == Contact.HISTORY_INVITE_AND_DEFECT) {
+							return base + " " +  dateString + " - You defected on " + playerName + ".";
+						}
+					} else if (event == Contact.HISTORY_ACCEPT_AND_DEFECT) {
+						if (previousEvent == Contact.HISTORY_INVITE_AND_COOP) {
+							return base + " " +  dateString + " - " + playerName + " defected on you.";	
+						} else if (previousEvent == Contact.HISTORY_INVITE_AND_DEFECT) {
+							return base + " " +  dateString + " - " + playerName + " and you both defected.";
+						}
+					}
+				}
+			} else {
+				base = base + " my event ";
+				if ((event == Contact.HISTORY_INVITE_AND_COOP)||(event == Contact.HISTORY_INVITE_AND_DEFECT)) {
+					return base + " " +  dateString + " - You invited " + playerName + " to trade.";
+				} else if (event == Contact.HISTORY_REJECT) {
+					return base + " " +  dateString + " - You rejected " + playerName + "'s invitation to trade.";
+				} else {
+					base = base + " response ";
+					if (event == Contact.HISTORY_ACCEPT_AND_COOP) {
+						if (previousEvent == Contact.HISTORY_INVITE_AND_COOP) {
+							return base + " " +  dateString + " - " + playerName + " and you both cooperated.";	
+						} else if (previousEvent == Contact.HISTORY_INVITE_AND_DEFECT) {
+							return base + " " +  dateString + " - " + playerName + " defected on you.";	
+						}
+					} else if (event == Contact.HISTORY_ACCEPT_AND_DEFECT) {
+						if (previousEvent == Contact.HISTORY_INVITE_AND_COOP) {
+							return base + " " +  dateString + " - You defected on " + playerName + ".";							
+						} else if (previousEvent == Contact.HISTORY_INVITE_AND_DEFECT) {
+							return base + " " +  dateString + " - " + playerName + " and you both defected.";
+						}
+					}
+				}
+			}
+			return base + " " + dateString + " - " + playerName + ", unknown event.";
 		}
+	}
+	
+	private static String byteArrayToDisplayString(byte[] array) {
+		String ret = "";
+		for (int i = 0; i < array.length; i++) {
+			if (i > 0) {
+				if (i % 8 == 0) {
+					ret = ret + " / ";
+				} else {
+					ret = ret +", ";
+				}
+			}
+			ret = ret + array[i];
+		}
+		return ret;
 	}
 }

@@ -27,8 +27,10 @@ public class BlackMarketUserUtils {
 		PreparedQuery pq = datastore.prepare(q);
 
 		for (Entity result : pq.asIterable()) {
+			System.out.println("Whe have a registered user");
 			return BlackMarketUserUtils.createFromEntity(result);
 		}
+		System.out.println("No user found.");
 		return null;
 	}
 	

@@ -1,7 +1,10 @@
 package hu.edudroid.blackmarkettmit.shared;
 
+
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class Contact implements Serializable{
 
@@ -182,5 +185,18 @@ public class Contact implements Serializable{
 		} else {
 			return tradeHistory[tradeHistory.length - 2]; 
 		}
+	}
+	
+	public List<Event> getEvents(){
+		ArrayList<Event> events = new ArrayList<Event>();
+		int eventCount = tradeHistory.length / (Contact.TRADE_HISTORY_ENTRY_LENGTH * 2);
+		if (tradeHistory.length != eventCount * 2 * Contact.TRADE_HISTORY_ENTRY_LENGTH) {
+			eventCount ++;
+		}
+		for (int i = 0; i < eventCount; i++) {
+			Event event = new Event(this, i);
+			events.add(event);
+		}
+		return events;
 	}
 }

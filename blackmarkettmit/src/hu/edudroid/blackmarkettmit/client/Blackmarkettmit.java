@@ -7,13 +7,13 @@ import hu.edudroid.blackmarkettmit.client.services.LoginService;
 import hu.edudroid.blackmarkettmit.client.services.LoginServiceAsync;
 import hu.edudroid.blackmarkettmit.shared.Contact;
 import hu.edudroid.blackmarkettmit.shared.ContactComparator;
+import hu.edudroid.blackmarkettmit.shared.Event;
 import hu.edudroid.blackmarkettmit.shared.LoginInfo;
 import hu.edudroid.blackmarkettmit.shared.PlayerState;
 import hu.edudroid.blackmarkettmit.shared.Tupple;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import com.google.gwt.core.client.EntryPoint;
@@ -37,14 +37,7 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 		ClickHandler, TradeActionHandler, SuggestListener {
 	private GetContactDialog getContactDialog;
-	private static final String VERSION = "2 / reversed history";
-	private static final Comparator<Event> CONTACT_COMPARATOR = new Comparator<Event>() {
-
-			@Override
-			public int compare(Event e1, Event e2) {
-				return (-1) * e1.dateString.compareTo(e2.dateString);
-			}
-		};
+	private static final String VERSION = "3 / score revieled";
 	private Button addContactButton;
 	private List<Contact> contactList;
 	private LoginInfo loginInfo;
@@ -169,20 +162,13 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 	private void updateEventsPanel(){
 		RootPanel eventsPanel = RootPanel.get("eventsPanel");
 		eventsPanel.clear();
-		ArrayList<Event> events = new ArrayList<Event>();
+		ArrayList<Event> allEvents = new ArrayList<Event>();
 		for (Contact contact : contactList) {
-			byte[] tradeHistory = contact.getTradeHistory();
-			int eventCount = tradeHistory.length / (Contact.TRADE_HISTORY_ENTRY_LENGTH * 2);
-			if (tradeHistory.length != eventCount * 2 * Contact.TRADE_HISTORY_ENTRY_LENGTH) {
-				eventCount ++;
-			}
-			for (int i = 0; i < eventCount; i++) {
-				events.add(new Event(contact, i));
-			}
+			allEvents.addAll(contact.getEvents());
 		}
 		VerticalPanel eventsHolder = new VerticalPanel();
-		Collections.sort(events, CONTACT_COMPARATOR);
-		for (Event event : events) {
+		Collections.sort(allEvents, Event.EVENT_COMPARATOR);
+		for (Event event : allEvents) {
 			eventsHolder.add(new Label(event.toString()));
 		}
 		ScrollPanel eventsScroll = new ScrollPanel(eventsHolder);
@@ -201,21 +187,26 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 		}
 		java.util.Collections.sort(contactList, new ContactComparator());
 		for (Contact player : contactList) {
+			List<Event> events = player.getEvents();
+			int totalScore = 0;
+			for (Event event : events){
+				totalScore += event.getPointValue();
+			}
 			int nextRow = actionTable.getRowCount();
 			actionTable.setWidget(nextRow, 0,
 					new Label(player.getSecondDisplayName()));
 			actionTable.setWidget(nextRow, 1,
 					new Label("G: " + player.getGameCount() + " TH: " + player.getTradeHistory().length));
 			actionTable.setWidget(nextRow, 2,
-					new Label(player.getSecondDisplayName()));
+					new Label("" + totalScore));
 			if (player.getState() == PlayerState.INVITED_HIM) {
 				actionTable
-						.setWidget(nextRow, 6, new Label("Waiting response"));
+						.setWidget(nextRow, 3, new Label("Waiting response"));
 			} else if (player.getState() == PlayerState.INVITED_ME) {
 				HorizontalPanel buttonHolder = new HorizontalPanel();
 				buttonHolder.add(new AcceptButton(player, this));
 				buttonHolder.add(new RejectButton(player, this));
-				actionTable.setWidget(nextRow, 6, buttonHolder);
+				actionTable.setWidget(nextRow, 3, buttonHolder);
 			} else {
 				actionTable.setWidget(nextRow, 6,
 						new InviteButton(player, this));
@@ -431,103 +422,5 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 			}
 		});
 		suggestDialog.hide();
-	}
-	
-	private class Event {
-		Contact contact;
-		int player;
-		byte event;
-		byte previousEvent;
-		String dateString;
-
-		public Event(Contact contact, int index) {
-			byte[] tradeHistory = contact.getTradeHistory();
-			this.contact = contact;
-			int startPosition = index * Contact.TRADE_HISTORY_ENTRY_LENGTH * 2;
-			if (startPosition + Contact.TRADE_HISTORY_ENTRY_LENGTH * 2 <= tradeHistory.length) {
-				previousEvent = tradeHistory[startPosition + 7];
-				startPosition = startPosition + Contact.TRADE_HISTORY_ENTRY_LENGTH;
-			} else {
-				previousEvent = Contact.HISTORY_INVALID;
-			}
-			dateString = "" + (tradeHistory[startPosition] + Contact.START_YEAR);
-			dateString = dateString + "-" + tradeHistory[startPosition + 1];
-			dateString = dateString + "-" + tradeHistory[startPosition + 2];
-			dateString = dateString + " " + tradeHistory[startPosition + 3];
-			dateString = dateString + ":" + tradeHistory[startPosition + 4];
-			dateString = dateString + ":" + tradeHistory[startPosition + 5];
-			this.player = tradeHistory[startPosition + 6];
-			this.event = tradeHistory[startPosition + 7];
-		}
-		
-		@Override
-		public String toString() {
-			String base =  byteArrayToDisplayString(contact.getTradeHistory());
-			String playerName = contact.getSecondDisplayName();
-			if (contact.getViewer() != 0) {
-				playerName = contact.getFirstDisplayName();
-			}
-			if (player != contact.getViewer()) {
-				base = base + " not my event ";
-				if ((event == Contact.HISTORY_INVITE_AND_COOP)||(event == Contact.HISTORY_INVITE_AND_DEFECT)) {
-					return base + " " + dateString + " - " + playerName + " invited you to trade.";
-				} else if (event == Contact.HISTORY_REJECT) {
-					return base + " " +  dateString + " - " + playerName + " rejected your invitation.";
-				} else {
-					base = base + " response ";
-					if (event == Contact.HISTORY_ACCEPT_AND_COOP) {
-						if (previousEvent == Contact.HISTORY_INVITE_AND_COOP) {
-							return base + " " +  dateString + " - " + playerName + " and you both cooperated.";	
-						} else if (previousEvent == Contact.HISTORY_INVITE_AND_DEFECT) {
-							return base + " " +  dateString + " - You defected on " + playerName + ".";
-						}
-					} else if (event == Contact.HISTORY_ACCEPT_AND_DEFECT) {
-						if (previousEvent == Contact.HISTORY_INVITE_AND_COOP) {
-							return base + " " +  dateString + " - " + playerName + " defected on you.";	
-						} else if (previousEvent == Contact.HISTORY_INVITE_AND_DEFECT) {
-							return base + " " +  dateString + " - " + playerName + " and you both defected.";
-						}
-					}
-				}
-			} else {
-				base = base + " my event ";
-				if ((event == Contact.HISTORY_INVITE_AND_COOP)||(event == Contact.HISTORY_INVITE_AND_DEFECT)) {
-					return base + " " +  dateString + " - You invited " + playerName + " to trade.";
-				} else if (event == Contact.HISTORY_REJECT) {
-					return base + " " +  dateString + " - You rejected " + playerName + "'s invitation to trade.";
-				} else {
-					base = base + " response ";
-					if (event == Contact.HISTORY_ACCEPT_AND_COOP) {
-						if (previousEvent == Contact.HISTORY_INVITE_AND_COOP) {
-							return base + " " +  dateString + " - " + playerName + " and you both cooperated.";	
-						} else if (previousEvent == Contact.HISTORY_INVITE_AND_DEFECT) {
-							return base + " " +  dateString + " - " + playerName + " defected on you.";	
-						}
-					} else if (event == Contact.HISTORY_ACCEPT_AND_DEFECT) {
-						if (previousEvent == Contact.HISTORY_INVITE_AND_COOP) {
-							return base + " " +  dateString + " - You defected on " + playerName + ".";							
-						} else if (previousEvent == Contact.HISTORY_INVITE_AND_DEFECT) {
-							return base + " " +  dateString + " - " + playerName + " and you both defected.";
-						}
-					}
-				}
-			}
-			return base + " " + dateString + " - " + playerName + ", unknown event.";
-		}
-	}
-	
-	private static String byteArrayToDisplayString(byte[] array) {
-		String ret = "";
-		for (int i = 0; i < array.length; i++) {
-			if (i > 0) {
-				if (i % 8 == 0) {
-					ret = ret + " / ";
-				} else {
-					ret = ret +", ";
-				}
-			}
-			ret = ret + array[i];
-		}
-		return ret;
 	}
 }

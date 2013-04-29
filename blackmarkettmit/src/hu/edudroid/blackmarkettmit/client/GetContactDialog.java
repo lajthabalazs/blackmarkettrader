@@ -21,7 +21,7 @@ public class GetContactDialog extends DialogBox implements ClickHandler {
 	Button randomButton;
 	private GetContactDialogListener listener;
 	
-	public GetContactDialog(List<Contact> players, GetContactDialogListener listener) {
+	public GetContactDialog(List<Contact> players,  int remainingEnergy, GetContactDialogListener listener) {
 		this.listener = listener;
 		setText("Get a new contact");
 		VerticalPanel mainPanel = new VerticalPanel();
@@ -29,7 +29,7 @@ public class GetContactDialog extends DialogBox implements ClickHandler {
 		if (players!=null) {
 			for (int i = 0; i < players.size(); i++) {
 				if (players.get(i).getViewer() == 0) {
-					table.setWidget(i, 0, new Label(players.get(i).getSecondDebugDisplayName()));
+					table.setWidget(i, 0, new Label(players.get(i).getSecondDisplayName()));
 					if (players.get(i).getFirstPlayerRequestsRecommandation() == null) {
 						Button requestContactButton = new RequestContactButton(players.get(i), listener);
 						table.setWidget(i, 1, requestContactButton);
@@ -37,7 +37,7 @@ public class GetContactDialog extends DialogBox implements ClickHandler {
 						table.setWidget(i, 1, new Label("Already requested"));
 					}
 				} else {
-					table.setWidget(i, 0, new Label(players.get(i).getFirstDebugDisplayName()));
+					table.setWidget(i, 0, new Label(players.get(i).getFirstDisplayName()));
 					if (players.get(i).getSecondPlayerRequestsRecommandation() == null) {
 						Button requestContactButton = new RequestContactButton(players.get(i), listener);
 						table.setWidget(i, 1, requestContactButton);
@@ -49,8 +49,8 @@ public class GetContactDialog extends DialogBox implements ClickHandler {
 			}
 		}
 		cancelButton = new Button("Never mind");
-		cancelButton.addClickHandler(this);		
-		randomButton = new Button("Find me someone (Costs $10)");
+		cancelButton.addClickHandler(this);
+		randomButton = new Button("Find me someone");
 		randomButton.addClickHandler(this);
 		table.setWidth("100%");
 		ScrollPanel tableScrollPanel = new ScrollPanel(table);

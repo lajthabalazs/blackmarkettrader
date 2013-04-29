@@ -11,6 +11,7 @@ public class BlackMarketUser implements Serializable{
 	private String userName;
 	private float random;
 	private byte[] loginDates;
+	private byte[] contactRequestHistory;
 	
 	public BlackMarketUser() {
 		
@@ -48,10 +49,24 @@ public class BlackMarketUser implements Serializable{
 	}
 
 	public byte[] getLoginDates() {
+		if (loginDates == null) {
+			loginDates = new byte[0];
+		}
 		return loginDates;
 	}
 
 	public void setLoginDates(byte[] loginDates) {
 		this.loginDates = loginDates;
+	}
+
+	public byte[] getContactRequestHistory() {
+		if (contactRequestHistory == null) {
+			contactRequestHistory = new byte[0];
+		}
+		return contactRequestHistory;
+	}
+
+	public void setContactRequestHistory(byte[] contactRequestHistory) {
+		this.contactRequestHistory = contactRequestHistory;
 	}
 }

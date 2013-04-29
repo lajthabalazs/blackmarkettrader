@@ -7,8 +7,8 @@ import hu.edudroid.blackmarkettmit.client.services.LoginService;
 import hu.edudroid.blackmarkettmit.client.services.LoginServiceAsync;
 import hu.edudroid.blackmarkettmit.shared.Contact;
 import hu.edudroid.blackmarkettmit.shared.ContactComparator;
-import hu.edudroid.blackmarkettmit.shared.TradingEvents;
-import hu.edudroid.blackmarkettmit.shared.TradingEvents.Date;
+import hu.edudroid.blackmarkettmit.shared.Event;
+import hu.edudroid.blackmarkettmit.shared.TradingEvent;
 import hu.edudroid.blackmarkettmit.shared.LoginInfo;
 import hu.edudroid.blackmarkettmit.shared.PlayerState;
 import hu.edudroid.blackmarkettmit.shared.Tupple;
@@ -42,9 +42,11 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 	private Button addContactButton;
 	private List<Contact> contactList;
 	private LoginInfo loginInfo;
+	private int remainingEnergy = 0;
 
 	ContactRequestServiceAsync contactRequestsService = GWT.create(ContactRequestService.class);
 	private SuggestDialog suggestDialog;
+	private int totalScore;
 
 	
 	public void onModuleLoad() {
@@ -86,10 +88,29 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 			@Override
 			public void onSuccess(List<Contact> result) {
 				dialog.hide();
-				contactList = result;
+				processContacts(result);
 				updateUI();
 			}
 		});
+	}
+	
+	private void processContacts(List<Contact> contacts) {
+		Event.Date currentDate = new Event.Date();
+		this.contactList = contacts;
+		if (loginInfo != null) {
+			int usedEnergy = 0;
+			for (Contact contact : contactList) {
+				List<TradingEvent> events = contact.getEvents();
+				for (TradingEvent event : events) {
+					totalScore += event.getPointValue();
+					if (event.getDate().equals(currentDate)) {
+						System.out.println("Event is in range");
+						usedEnergy += event.getUsedEnergy();
+					}
+				}
+			}
+			remainingEnergy = loginInfo.getBlackMarketUser().getMaxEnergy() - usedEnergy;
+		}
 	}
 	
 	private void init() {
@@ -108,7 +129,6 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 	}
 
 	private void updateScoreAndEnergy(){
-		Date currentDate = new Date();
 		RootPanel energyHolder = RootPanel.get("energyHolder");
 		energyHolder.clear();
 		RootPanel scoreHolder = RootPanel.get("scoreHolder");
@@ -116,23 +136,10 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 		if (loginInfo != null) {
 			HorizontalPanel energyPanel = new HorizontalPanel();
 			energyPanel.add(new Label("Energy:"));
-			int usedEnergy = 0;
-			int totalScore = 0;
-			for (Contact contact : contactList) {
-				List<TradingEvents> events = contact.getEvents();
-				for (TradingEvents event : events) {
-					totalScore += event.getPointValue();
-					if (event.getDate().equals(currentDate)) {
-						System.out.println("Event is in range");
-						usedEnergy += event.getUsedEnergy();
-					}
-				}
-			}
-			int energy = loginInfo.getBlackMarketUser().getMaxEnergy() - usedEnergy;
-			energyPanel.add(new Label(energy + ""));
+			energyPanel.add(new Label(remainingEnergy + ""));
 			energyHolder.add(energyPanel);
 			HorizontalPanel scorePanel = new HorizontalPanel();
-			scorePanel.add(new Label("Score: "));
+			scorePanel.add(new Label("Profit: "));
 			scorePanel.add(new Label("$"+ totalScore));
 			energyHolder.add(scorePanel);
 		}
@@ -168,13 +175,13 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 	private void updateEventsPanel(){
 		RootPanel eventsPanel = RootPanel.get("eventsPanel");
 		eventsPanel.clear();
-		ArrayList<TradingEvents> allEvents = new ArrayList<TradingEvents>();
+		ArrayList<TradingEvent> allEvents = new ArrayList<TradingEvent>();
 		for (Contact contact : contactList) {
 			allEvents.addAll(contact.getEvents());
 		}
 		VerticalPanel eventsHolder = new VerticalPanel();
-		Collections.sort(allEvents, TradingEvents.EVENT_COMPARATOR);
-		for (TradingEvents event : allEvents) {
+		Collections.sort(allEvents, TradingEvent.EVENT_COMPARATOR);
+		for (TradingEvent event : allEvents) {
 			eventsHolder.add(new Label(event.toString()));
 		}
 		ScrollPanel eventsScroll = new ScrollPanel(eventsHolder);
@@ -201,18 +208,18 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 		}
 		java.util.Collections.sort(contactList, new ContactComparator());
 		for (Contact player : contactList) {
-			List<TradingEvents> events = player.getEvents();
+			List<TradingEvent> events = player.getEvents();
 			int totalScore = 0;
-			for (TradingEvents event : events){
+			for (TradingEvent event : events){
 				totalScore += event.getPointValue();
 			}
 			int nextRow = actionTable.getRowCount();
 			actionTable.setWidget(nextRow, 0,
 					new Label(player.getSecondDisplayName()));
 			actionTable.setWidget(nextRow, 1,
-					new Label("G: " + player.getGameCount() + " TH: " + player.getTradeHistory().length));
+					new Label("" + player.getGameCount()));
 			actionTable.setWidget(nextRow, 2,
-					new Label("" + totalScore));
+					new Label("$" + totalScore));
 			if (player.getState() == PlayerState.INVITED_HIM) {
 				actionTable
 						.setWidget(nextRow, 3, new Label("Waiting response"));
@@ -261,7 +268,7 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 	@Override
 	public void onClick(ClickEvent event) {
 		if (event.getSource().equals(addContactButton)) {
-			getContactDialog = new GetContactDialog(contactList, this);
+			getContactDialog = new GetContactDialog(contactList, remainingEnergy, this);
 		}
 	}
 

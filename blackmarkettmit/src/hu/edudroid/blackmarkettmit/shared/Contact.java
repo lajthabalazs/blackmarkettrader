@@ -187,14 +187,14 @@ public class Contact implements Serializable{
 		}
 	}
 	
-	public List<Event> getEvents(){
-		ArrayList<Event> events = new ArrayList<Event>();
+	public List<TradingEvents> getEvents() {
+		ArrayList<TradingEvents> events = new ArrayList<TradingEvents>();
 		int eventCount = tradeHistory.length / (Contact.TRADE_HISTORY_ENTRY_LENGTH * 2);
 		if (tradeHistory.length != eventCount * 2 * Contact.TRADE_HISTORY_ENTRY_LENGTH) {
 			eventCount ++;
 		}
 		for (int i = 0; i < eventCount; i++) {
-			Event event = new Event(this, i);
+			TradingEvents event = new TradingEvents(this, i);
 			events.add(event);
 		}
 		return events;

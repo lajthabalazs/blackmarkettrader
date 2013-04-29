@@ -7,7 +7,8 @@ import hu.edudroid.blackmarkettmit.client.services.LoginService;
 import hu.edudroid.blackmarkettmit.client.services.LoginServiceAsync;
 import hu.edudroid.blackmarkettmit.shared.Contact;
 import hu.edudroid.blackmarkettmit.shared.ContactComparator;
-import hu.edudroid.blackmarkettmit.shared.Event;
+import hu.edudroid.blackmarkettmit.shared.TradingEvents;
+import hu.edudroid.blackmarkettmit.shared.TradingEvents.Date;
 import hu.edudroid.blackmarkettmit.shared.LoginInfo;
 import hu.edudroid.blackmarkettmit.shared.PlayerState;
 import hu.edudroid.blackmarkettmit.shared.Tupple;
@@ -42,14 +43,12 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 	private List<Contact> contactList;
 	private LoginInfo loginInfo;
 
-	private FlexTable actionTable;
-	private VerticalPanel requestPanel;
 	ContactRequestServiceAsync contactRequestsService = GWT.create(ContactRequestService.class);
 	private SuggestDialog suggestDialog;
 
 	
 	public void onModuleLoad() {
-		refreshLoginPanel();
+		updateLoginPanel();
 		checkIfLoggedIn();
 	}
 	
@@ -70,16 +69,9 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 				if (loginInfo.isLoggedIn()) {
 					init();
 				}
-				refreshLoginPanel();
+				updateLoginPanel();
 			}
 		});
-	}
-
-	private void init() {
-		refreshLoginPanel();
-		initActionPanel();
-		initContactRequestsPanel();
-		getData();
 	}
 
 	private void getData() {
@@ -100,17 +92,56 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 		});
 	}
 	
+	private void init() {
+		updateLoginPanel();
+		getData();
+	}
+
 	private void updateUI() {
+		RootPanel versionPanel = RootPanel.get("versionHolder");
+		versionPanel.add(new Label("Version " + VERSION));
+		updateScoreAndEnergy();
+		updateLoginPanel();
 		updateActionPanel();
 		updateRequestsPanel();
 		updateEventsPanel();
 	}
 
-	private void refreshLoginPanel(){
+	private void updateScoreAndEnergy(){
+		Date currentDate = new Date();
+		RootPanel energyHolder = RootPanel.get("energyHolder");
+		energyHolder.clear();
+		RootPanel scoreHolder = RootPanel.get("scoreHolder");
+		scoreHolder.clear();
+		if (loginInfo != null) {
+			HorizontalPanel energyPanel = new HorizontalPanel();
+			energyPanel.add(new Label("Energy:"));
+			int usedEnergy = 0;
+			int totalScore = 0;
+			for (Contact contact : contactList) {
+				List<TradingEvents> events = contact.getEvents();
+				for (TradingEvents event : events) {
+					totalScore += event.getPointValue();
+					if (event.getDate().equals(currentDate)) {
+						System.out.println("Event is in range");
+						usedEnergy += event.getUsedEnergy();
+					}
+				}
+			}
+			int energy = loginInfo.getBlackMarketUser().getMaxEnergy() - usedEnergy;
+			energyPanel.add(new Label(energy + ""));
+			energyHolder.add(energyPanel);
+			HorizontalPanel scorePanel = new HorizontalPanel();
+			scorePanel.add(new Label("Score: "));
+			scorePanel.add(new Label("$"+ totalScore));
+			energyHolder.add(scorePanel);
+		}
+	}
+
+	private void updateLoginPanel(){
 		RootPanel loginHolder = RootPanel.get("loginHolder");
 		loginHolder.clear();
 		VerticalPanel loginPanel = new VerticalPanel();
-		loginPanel.add(new Label("Version " + VERSION));
 		if (loginInfo == null || !loginInfo.isLoggedIn()) {
 			// Assemble login panel.
 			loginPanel.add(new Label("Log in with Facebook or Google!"));
@@ -134,9 +165,27 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 		loginHolder.add(loginPanel);
 	}
 	
-	private void initActionPanel(){
+	private void updateEventsPanel(){
+		RootPanel eventsPanel = RootPanel.get("eventsPanel");
+		eventsPanel.clear();
+		ArrayList<TradingEvents> allEvents = new ArrayList<TradingEvents>();
+		for (Contact contact : contactList) {
+			allEvents.addAll(contact.getEvents());
+		}
+		VerticalPanel eventsHolder = new VerticalPanel();
+		Collections.sort(allEvents, TradingEvents.EVENT_COMPARATOR);
+		for (TradingEvents event : allEvents) {
+			eventsHolder.add(new Label(event.toString()));
+		}
+		ScrollPanel eventsScroll = new ScrollPanel(eventsHolder);
+		eventsScroll.setHeight("400px");
+		eventsPanel.add(eventsScroll);
+	}
+
+	private void updateActionPanel() {
 		RootPanel tablePanel = RootPanel.get("actionPanel");
-		actionTable = new FlexTable();
+		tablePanel.clear();
+		FlexTable actionTable = new FlexTable();
 		DOM.setElementAttribute(actionTable.getElement(), "id", "actionTable");
 		actionTable.setWidget(0, 0, new Label("Player name"));
 		actionTable.setWidget(0, 1, new Label("Games"));
@@ -146,50 +195,15 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 		ScrollPanel actionTableScroll = new ScrollPanel(actionTable);
 		actionTableScroll.setHeight("400px");
 		tablePanel.add(actionTableScroll);
-	}
-	
-	private void initContactRequestsPanel() {
-		RootPanel requestHolder = RootPanel.get("contactRequestPanel");
-		addContactButton = new Button("Add new contact");
-		addContactButton.addClickHandler(this);
-		requestPanel = new VerticalPanel();
-		ScrollPanel historyScroll = new ScrollPanel(requestPanel);
-		historyScroll.setHeight("400px");
-		requestHolder.add(addContactButton);
-		requestHolder.add(requestPanel);
-	}
-
-	private void updateEventsPanel(){
-		RootPanel eventsPanel = RootPanel.get("eventsPanel");
-		eventsPanel.clear();
-		ArrayList<Event> allEvents = new ArrayList<Event>();
-		for (Contact contact : contactList) {
-			allEvents.addAll(contact.getEvents());
-		}
-		VerticalPanel eventsHolder = new VerticalPanel();
-		Collections.sort(allEvents, Event.EVENT_COMPARATOR);
-		for (Event event : allEvents) {
-			eventsHolder.add(new Label(event.toString()));
-		}
-		ScrollPanel eventsScroll = new ScrollPanel(eventsHolder);
-		eventsScroll.setHeight("400px");
-		eventsPanel.add(eventsScroll);
-	}
-
-	private void updateActionPanel() {
-		// Clear table
-		while (actionTable.getRowCount() > 1) {
-			actionTable.removeRow(1);
-		}
 		// Order contact list
 		if (contactList == null) {
 			contactList = new ArrayList<Contact>();
 		}
 		java.util.Collections.sort(contactList, new ContactComparator());
 		for (Contact player : contactList) {
-			List<Event> events = player.getEvents();
+			List<TradingEvents> events = player.getEvents();
 			int totalScore = 0;
-			for (Event event : events){
+			for (TradingEvents event : events){
 				totalScore += event.getPointValue();
 			}
 			int nextRow = actionTable.getRowCount();
@@ -215,7 +229,9 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 	}
 	
 	protected void updateRequestsPanel() {
-		requestPanel.clear();
+		RootPanel requestHolder = RootPanel.get("contactRequestPanel");
+		requestHolder.clear();
+		VerticalPanel requestPanel = new VerticalPanel();
 		int count = 0;
 		for (Contact contact : contactList) {
 			if (contact.getViewer() == 0) {
@@ -233,6 +249,12 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 		if (count == 0) {
 			requestPanel.add(new Label("No one is asking for contacts."));
 		}
+		addContactButton = new Button("Add new contact");
+		addContactButton.addClickHandler(this);
+		ScrollPanel historyScroll = new ScrollPanel(requestPanel);
+		historyScroll.setHeight("400px");
+		requestHolder.add(addContactButton);
+		requestHolder.add(requestPanel);
 	}
 
 

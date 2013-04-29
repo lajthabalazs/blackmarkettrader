@@ -5,10 +5,12 @@ import java.io.Serializable;
 public class BlackMarketUser implements Serializable{
 
 	private static final long serialVersionUID = -8822523082905084208L;
+	private static final int MAX_ENERGY = 90;
 	private String userKey;
 	private String externalId;
 	private String userName;
 	private float random;
+	private byte[] loginDates;
 	
 	public BlackMarketUser() {
 		
@@ -39,5 +41,17 @@ public class BlackMarketUser implements Serializable{
 	}
 	public void setRandom(float random) {
 		this.random = random;
+	}
+	
+	public int getMaxEnergy() {
+		return MAX_ENERGY;
+	}
+
+	public byte[] getLoginDates() {
+		return loginDates;
+	}
+
+	public void setLoginDates(byte[] loginDates) {
+		this.loginDates = loginDates;
 	}
 }

@@ -2,43 +2,49 @@ package hu.edudroid.blackmarkettmit.shared;
 
 import java.util.Comparator;
 
-public class Event {
-	Contact contact;
-	int player;
-	byte event;
-	Outcome outcome;
-	byte previousEvent;
-	String dateString;
+import com.google.gwt.i18n.client.DateTimeFormat;
 
-	public static final Comparator<Event> EVENT_COMPARATOR = new Comparator<Event>() {
+public class TradingEvents {
+	private Contact contact;
+	private int player;
+	private byte event;
+	private Outcome outcome;
+	private byte previousEvent;
+	private String dateString;
+	private Date date;
+
+	public static final Comparator<TradingEvents> EVENT_COMPARATOR = new Comparator<TradingEvents>() {
 
 		@Override
-		public int compare(Event e1, Event e2) {
+		public int compare(TradingEvents e1, TradingEvents e2) {
 			return (-1) * e1.dateString.compareTo(e2.dateString);
 		}
 	};
 
+	public static final int INVITE_ENERGY = 10;
+	public static final int REJECT_ENERGY = 0;
+	
 	private enum Outcome {
-		BOTH_COOPERATE(-10,10),
-		BOTH_DEFECT(-10,-5),
-		I_DEFECT(-10,15),
-		HE_DEFECTS(-10,-10),
-		I_REJECT(0,0),
-		HE_REJECTS(-10,0),
-		I_INVITE(-10,0),
+		BOTH_COOPERATE(INVITE_ENERGY,10),
+		BOTH_DEFECT(INVITE_ENERGY,-5),
+		I_DEFECT(INVITE_ENERGY,15),
+		HE_DEFECTS(INVITE_ENERGY,-10),
+		I_REJECT(REJECT_ENERGY,0),
+		HE_REJECTS(INVITE_ENERGY,0),
+		I_INVITE(INVITE_ENERGY,0),
 		HE_INVITES(0,0);
 		private final int point;
-		private final int energy;
-		private Outcome(int energy, int point) {
-			this.energy = energy;
+		private final int usedEnergy;
+		private Outcome(int usedEnergy, int point) {
+			this.usedEnergy = usedEnergy;
 			this.point = point;
 		}
 		public int getPoint(){
 			return point;
 		}
 		
-		public int getEnergy(){
-			return energy;
+		public int getUsedEnergy(){
+			return usedEnergy;
 		}
 		public String generateString(String playerName){
 			switch(this) {
@@ -64,7 +70,7 @@ public class Event {
 		}
 	}
 
-	public Event(Contact contact, int index) {
+	public TradingEvents(Contact contact, int index) {
 		byte[] tradeHistory = contact.getTradeHistory();
 		this.contact = contact;
 		int startPosition = index * Contact.TRADE_HISTORY_ENTRY_LENGTH * 2;
@@ -80,6 +86,7 @@ public class Event {
 		dateString = dateString + " " + tradeHistory[startPosition + 3];
 		dateString = dateString + ":" + tradeHistory[startPosition + 4];
 		dateString = dateString + ":" + tradeHistory[startPosition + 5];
+		date = new Date((tradeHistory[startPosition] + Contact.START_YEAR), tradeHistory[startPosition + 1], tradeHistory[startPosition + 2]);
 		this.player = tradeHistory[startPosition + 6];
 		this.event = tradeHistory[startPosition + 7];
 		// See what happened
@@ -130,18 +137,22 @@ public class Event {
 		return outcome.getPoint();
 	}
 
-	public int getEnergy(){
-		return outcome.getEnergy();
+	public int getUsedEnergy(){
+		return outcome.getUsedEnergy();
+	}
+	
+	public Date getDate(){
+		return date;
 	}
 
 	@Override
 	public String toString() {
-		String base =  byteArrayToDisplayString(contact.getTradeHistory());
+		String base = ""; //byteArrayToDisplayString(contact.getTradeHistory());
 		String playerName = contact.getSecondDisplayName();
 		if (contact.getViewer() != 0) {
 			playerName = contact.getFirstDisplayName();
 		}
-		return base + " " + dateString + " - " + outcome.generateString(playerName) + "(" + getEnergy() + ", " + getPointValue() + ")";
+		return base + " " + date.toString() + " - " + outcome.generateString(playerName) + "(" + getUsedEnergy() + ", " + getPointValue() + ")";
 	}
 	
 	static String byteArrayToDisplayString(byte[] array) {
@@ -158,5 +169,50 @@ public class Event {
 		}
 		return ret;
 	}
+	
+	/**
+	 * A simple date class containing only year, month and day
+	 * @author lajthabalazs
+	 *
+	 */
+	public static class Date {
+		public final int year;
+		public final int month;
+		public final int day;
+		public final int hash;
+		
+		public Date(int year, int month, int day) {
+			this.year = year;
+			this.month = month;
+			this.day = day;
+			this.hash = year * 10000 + month + day;
+		}
 
+		public Date() {
+			java.util.Date now = new java.util.Date();
+			year = Integer.parseInt(DateTimeFormat.getFormat( "y" ).format(now));
+			month = Integer.parseInt(DateTimeFormat.getFormat( "M" ).format(now)) - 1;
+			day = Integer.parseInt(DateTimeFormat.getFormat( "d" ).format(now));
+			this.hash = year * 10000 + month + day;
+		}
+
+		@Override
+		public String toString() {
+			return year + "-" + month + "-" + day;
+		}
+		
+		@Override
+		public int hashCode() {
+			return hash;
+		}
+		
+		@Override
+		public boolean equals(Object obj) {
+			if (! (obj instanceof Date)) {
+				return false;
+			}
+			Date other = (Date) obj;
+			return (this.year == other.year) && (this.month == other.month) && (this.day == other.day);
+		}
+	}
 }

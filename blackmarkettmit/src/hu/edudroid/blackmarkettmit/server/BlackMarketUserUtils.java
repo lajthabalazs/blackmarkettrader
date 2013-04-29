@@ -92,7 +92,6 @@ public class BlackMarketUserUtils {
 		entity.setProperty("externalId", blackMarketUser.getExternalId());
 		entity.setProperty("random", blackMarketUser.getRandom());
 		entity.setProperty("loginDates", new Blob(blackMarketUser.getLoginDates()));
-		entity.setProperty("loginDates", new Blob(blackMarketUser.getContactRequestHistory()));
 		datastore.put(entity);
 	}
 

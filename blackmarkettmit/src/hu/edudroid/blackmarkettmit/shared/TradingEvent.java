@@ -139,7 +139,7 @@ public class TradingEvent extends Event {
 
 	@Override
 	public String toString() {
-		String base = ""; //byteArrayToDisplayString(contact.getTradeHistory());
+		String base = "";
 		String playerName = contact.getSecondDisplayName();
 		if (contact.getViewer() != 0) {
 			playerName = contact.getFirstDisplayName();

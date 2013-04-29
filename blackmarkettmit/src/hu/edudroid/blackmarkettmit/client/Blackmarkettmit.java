@@ -120,6 +120,7 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 
 	private void updateUI() {
 		RootPanel versionPanel = RootPanel.get("versionHolder");
+		versionPanel.clear();
 		versionPanel.add(new Label("Version " + VERSION));
 		updateScoreAndEnergy();
 		updateLoginPanel();
@@ -194,7 +195,7 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 		tablePanel.clear();
 		FlexTable actionTable = new FlexTable();
 		DOM.setElementAttribute(actionTable.getElement(), "id", "actionTable");
-		actionTable.setWidget(0, 0, new Label("Player name"));
+		actionTable.setWidget(0, 0, new Label("Contact"));
 		actionTable.setWidget(0, 1, new Label("Games"));
 		actionTable.setWidget(0, 2, new Label("Total profit"));
 		actionTable.setWidget(0, 3, new Label("Action"));
@@ -214,8 +215,13 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 				totalScore += event.getPointValue();
 			}
 			int nextRow = actionTable.getRowCount();
-			actionTable.setWidget(nextRow, 0,
-					new Label(player.getSecondDisplayName()));
+			if(player.getViewer() == 1) {
+				actionTable.setWidget(nextRow, 0,
+						new Label(player.getFirstDisplayName()));
+			} else {
+				actionTable.setWidget(nextRow, 0,
+						new Label(player.getSecondDisplayName()));
+			}
 			actionTable.setWidget(nextRow, 1,
 					new Label("" + player.getGameCount()));
 			actionTable.setWidget(nextRow, 2,
@@ -229,7 +235,7 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 				buttonHolder.add(new RejectButton(player, this));
 				actionTable.setWidget(nextRow, 3, buttonHolder);
 			} else {
-				actionTable.setWidget(nextRow, 6,
+				actionTable.setWidget(nextRow, 3,
 						new InviteButton(player, this));
 			}
 		}

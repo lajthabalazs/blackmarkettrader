@@ -15,11 +15,11 @@ public class Event {
 	
 	public Event(byte[] data, int startPosition) {
 		dateString = "" + (data[startPosition] + Contact.START_YEAR);
-		dateString = dateString + "-" + data[startPosition + 1];
-		dateString = dateString + "-" + data[startPosition + 2];
-		dateString = dateString + " " + data[startPosition + 3];
-		dateString = dateString + ":" + data[startPosition + 4];
-		dateString = dateString + ":" + data[startPosition + 5];
+		dateString = dateString + "-" + (data[startPosition + 1]<10?"0":"") + data[startPosition + 1];
+		dateString = dateString + "-" + (data[startPosition + 2]<10?"0":"") + data[startPosition + 2];
+		dateString = dateString + " " + (data[startPosition + 3]<10?"0":"") + data[startPosition + 3];
+		dateString = dateString + ":" + (data[startPosition + 4]<10?"0":"") + data[startPosition + 4];
+		dateString = dateString + ":" + (data[startPosition + 5]<10?"0":"") + data[startPosition + 5];
 		date = new Date((data[startPosition] + Contact.START_YEAR), data[startPosition + 1], data[startPosition + 2]);		
 	}
 	

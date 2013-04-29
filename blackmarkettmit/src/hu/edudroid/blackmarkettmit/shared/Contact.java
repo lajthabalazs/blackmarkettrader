@@ -26,6 +26,8 @@ public class Contact implements Serializable{
 	private String entityKey;
 	
 	private int viewer;
+	private int whoRequested;
+	private Date creationDate;
 	// Credentials
 	private String firstPlayerKey;
 	private String secondPlayerKey;
@@ -38,7 +40,6 @@ public class Contact implements Serializable{
 	private Date secondPlayerRequestsRecommandation;
 	// Statistics
 	private byte[] tradeHistory;
-	private byte[] contactHistory;
 	
 	
 	public byte[] getTradeHistory() {
@@ -50,14 +51,6 @@ public class Contact implements Serializable{
 
 	public void setTradeHistory(byte[] tradeHistory) {
 		this.tradeHistory = tradeHistory;
-	}
-
-	public byte[] getContactHistory() {
-		return contactHistory;
-	}
-
-	public void setContactHistory(byte[] contactHistory) {
-		this.contactHistory = contactHistory;
 	}
 
 	public String getEntityKey() {
@@ -74,6 +67,22 @@ public class Contact implements Serializable{
 
 	public void setViewer(int viewer) {
 		this.viewer = viewer;
+	}
+	
+	public int getWhoRequested() {
+		return whoRequested;
+	}
+
+	public void setWhoRequested(int whoRequested) {
+		this.whoRequested = whoRequested;
+	}
+
+	public Date getCreationDate() {
+		return creationDate;
+	}
+
+	public void setCreationDate(Date creationDate) {
+		this.creationDate = creationDate;
 	}
 
 	public String getFirstPlayerKey() {

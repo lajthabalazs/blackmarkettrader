@@ -22,12 +22,14 @@ public class Contact implements Serializable{
 
 	public static final int TRADE_HISTORY_ENTRY_LENGTH = 8;
 	public static final int START_YEAR = 2012;
+	public static final int REQUEST_ENERGY_CONSUMPTION = 30;
 
 	private String entityKey;
 	
 	private int viewer;
+	// Used for calculating user energy
 	private int whoRequested;
-	private Date creationDate;
+	private Date requestDate;
 	// Credentials
 	private String firstPlayerKey;
 	private String secondPlayerKey;
@@ -77,12 +79,12 @@ public class Contact implements Serializable{
 		this.whoRequested = whoRequested;
 	}
 
-	public Date getCreationDate() {
-		return creationDate;
+	public Date getRequestDate() {
+		return requestDate;
 	}
 
-	public void setCreationDate(Date creationDate) {
-		this.creationDate = creationDate;
+	public void setRequestDate(Date requestDate) {
+		this.requestDate = requestDate;
 	}
 
 	public String getFirstPlayerKey() {

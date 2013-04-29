@@ -67,7 +67,7 @@ public class TradingEvent extends Event {
 		this.contact = contact;
 		int startPosition = getStartPosition(index, contact.getTradeHistory().length);
 		if (index * Contact.TRADE_HISTORY_ENTRY_LENGTH * 2 + Contact.TRADE_HISTORY_ENTRY_LENGTH * 2 <= tradeHistory.length) {
-			previousEvent = tradeHistory[startPosition + 7];
+			previousEvent = tradeHistory[startPosition - 1];
 		} else {
 			previousEvent = Contact.HISTORY_INVALID;
 		}

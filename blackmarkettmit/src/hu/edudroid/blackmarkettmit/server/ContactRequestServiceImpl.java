@@ -50,6 +50,8 @@ public class ContactRequestServiceImpl  extends RemoteServiceServlet implements 
 		} else {
 			// Create contact from user and found possible contact
 			Contact newContact = ContactUtils.createContact(user, possibleContact);
+			newContact.setWhoRequested(0);
+			newContact.setRequestDate(new Date());
 			ContactUtils.save(newContact);
 			// Add to contact list
 			contacts.add(newContact);
@@ -203,17 +205,21 @@ public class ContactRequestServiceImpl  extends RemoteServiceServlet implements 
 		String playerId = blackMarketUser.getUserKey();
 		Contact playerOtherPlayer = ContactUtils.getContactForUsers(playerId, otherPlayerId);
 		Contact playerSuggestedPlayer = ContactUtils.getContactForUsers(playerId, suggestedPlayerId);
-		Contact otherSuggestedPlayer = ContactUtils.getContactForUsers(otherPlayerId, suggestedPlayerId);
-		if (playerOtherPlayer != null && playerSuggestedPlayer != null && otherSuggestedPlayer == null) {
+		Contact existingContact = ContactUtils.getContactForUsers(otherPlayerId, suggestedPlayerId);		
+		if (playerOtherPlayer != null && playerSuggestedPlayer != null && existingContact == null) {
 			BlackMarketUser otherUser = BlackMarketUserUtils.getUserByKey(otherPlayerId);
 			BlackMarketUser suggestedUser = BlackMarketUserUtils.getUserByKey(suggestedPlayerId);
 			Contact newContact = ContactUtils.createContact(otherUser, suggestedUser);
-			ContactUtils.save(newContact);	
+			newContact.setWhoRequested(0);
+
 			if (playerOtherPlayer.getViewer() == 0) {
+				newContact.setRequestDate(playerOtherPlayer.getSecondPlayerRequestsRecommandation());
 				playerOtherPlayer.setSecondPlayerRequestsRecommandation(null);
 			} else {
+				newContact.setRequestDate(playerOtherPlayer.getFirstPlayerRequestsRecommandation());
 				playerOtherPlayer.setFirstPlayerRequestsRecommandation(null);
 			}
+			ContactUtils.save(newContact);	
 			ContactUtils.save(playerOtherPlayer);
 		}
 	}

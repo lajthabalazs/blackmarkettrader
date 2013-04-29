@@ -94,6 +94,9 @@ public class ContactUtils {
 			entity.setProperty("tradeHistory", new Blob(contact.getTradeHistory()));
 		}
 
+		entity.setProperty("whoRequested", contact.getWhoRequested());
+		entity.setProperty("requestDate", contact.getRequestDate());
+
 		entity.setProperty("firstPlayerKey", contact.getFirstPlayerKey());
 		entity.setProperty("secondPlayerKey", contact.getSecondPlayerKey());
 		entity.setProperty("firstDisplayName", contact.getFirstDisplayName());
@@ -112,6 +115,8 @@ public class ContactUtils {
 		Contact contact = new Contact();
 		contact.setEntityKey(KeyFactory.keyToString(result.getKey()));
 
+		contact.setWhoRequested((Integer)result.getProperty("whoRequested"));
+		contact.setRequestDate((Date)result.getProperty("requestDate"));
 		contact.setFirstPlayerKey((String)result.getProperty("firstPlayerKey"));
 		contact.setSecondPlayerKey((String)result.getProperty("secondPlayerKey"));
 		contact.setFirstDisplayName((String)result.getProperty("firstDisplayName"));

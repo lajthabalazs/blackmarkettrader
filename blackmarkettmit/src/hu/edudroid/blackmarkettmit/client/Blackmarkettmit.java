@@ -7,7 +7,7 @@ import hu.edudroid.blackmarkettmit.client.services.LoginService;
 import hu.edudroid.blackmarkettmit.client.services.LoginServiceAsync;
 import hu.edudroid.blackmarkettmit.shared.Contact;
 import hu.edudroid.blackmarkettmit.shared.ContactComparator;
-import hu.edudroid.blackmarkettmit.shared.Event;
+import hu.edudroid.blackmarkettmit.shared.Date;
 import hu.edudroid.blackmarkettmit.shared.TradingEvent;
 import hu.edudroid.blackmarkettmit.shared.LoginInfo;
 import hu.edudroid.blackmarkettmit.shared.PlayerState;
@@ -95,11 +95,30 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 	}
 	
 	private void processContacts(List<Contact> contacts) {
-		Event.Date currentDate = new Event.Date();
+		Date currentDate = new Date();
 		this.contactList = contacts;
 		if (loginInfo != null) {
 			int usedEnergy = 0;
 			for (Contact contact : contactList) {
+				// Check if contact creation reduced energy
+				if (contact.getViewer() == contact.getWhoRequested()) {
+					Date requestDate = new Date(contact.getRequestDate());
+					if (requestDate.equals(currentDate)) {
+						usedEnergy += Contact.REQUEST_ENERGY_CONSUMPTION;
+					}
+				}
+				// Check if contact request reduced energy
+				if (contact.getViewer() == 0) {
+					if (contact.getFirstPlayerRequestsRecommandation() != null &&
+							new Date(contact.getFirstPlayerRequestsRecommandation()).equals(currentDate)) {
+						usedEnergy += Contact.REQUEST_ENERGY_CONSUMPTION;
+					}
+				} else {
+					if (contact.getSecondPlayerRequestsRecommandation() != null &&
+							new Date(contact.getSecondPlayerRequestsRecommandation()).equals(currentDate)) {
+						usedEnergy += Contact.REQUEST_ENERGY_CONSUMPTION;
+					}
+				}
 				List<TradingEvent> events = contact.getEvents();
 				for (TradingEvent event : events) {
 					totalScore += event.getPointValue();

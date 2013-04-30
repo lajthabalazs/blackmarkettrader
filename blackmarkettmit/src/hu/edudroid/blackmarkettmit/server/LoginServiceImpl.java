@@ -43,7 +43,7 @@ public class LoginServiceImpl extends RemoteServiceServlet implements
 				loginInfo.setLoggedIn(true);
 				loginInfo.setExternalId(userId);
 				loginInfo.setNickname(userName);
-				loginInfo.setLogoutUrl("/Logout");
+				loginInfo.setLogoutUrl("/FacebookLogoutServlet");
 			}
 			// Check if user is part of the system			
 			BlackMarketUser blackMarketUser = BlackMarketUserUtils.getUserByExternalId(userId);

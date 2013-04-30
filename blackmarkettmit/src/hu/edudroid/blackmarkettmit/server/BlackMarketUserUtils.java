@@ -1,7 +1,6 @@
 package hu.edudroid.blackmarkettmit.server;
 
 import java.util.Calendar;
-import java.util.Date;
 
 import com.google.appengine.api.datastore.Blob;
 import com.google.appengine.api.datastore.DatastoreService;
@@ -65,33 +64,73 @@ public class BlackMarketUserUtils {
 		return null;
 	}
 
-	public static void addLoginEvent(BlackMarketUser blackMarketUser, Date date) {
+	private static void addLoginEvent(BlackMarketUser blackMarketUser, boolean realLogin) {
+		System.out.println("Adding login entry");
 		byte[] dates = blackMarketUser.getLoginDates();
 		Calendar calendar = Calendar.getInstance();
-		calendar.setTime(date);
 		int nextIndex = dates.length;
-		byte[] newDates = new byte[nextIndex + 6];
+		byte[] newDates = new byte[nextIndex + Contact.LOGIN_HISTORY_ENTRY_LENGTH];
 		System.arraycopy(dates, 0, newDates, 0, nextIndex);
 		newDates[nextIndex] = (byte)(calendar.get(Calendar.YEAR) - Contact.START_YEAR);
 		nextIndex++;
-		newDates[nextIndex] = (byte)(calendar.get(Calendar.YEAR));
+		newDates[nextIndex] = (byte)(calendar.get(Calendar.MONTH));
 		nextIndex++;
-		newDates[nextIndex] = (byte)(calendar.get(Calendar.YEAR));
+		newDates[nextIndex] = (byte)(calendar.get(Calendar.DAY_OF_MONTH) - 1);
 		nextIndex++;
-		newDates[nextIndex] = (byte)(calendar.get(Calendar.YEAR));
+		newDates[nextIndex] = (byte)(calendar.get(Calendar.HOUR));
 		nextIndex++;
-		newDates[nextIndex] = (byte)(calendar.get(Calendar.YEAR));
+		newDates[nextIndex] = (byte)(calendar.get(Calendar.MINUTE));
 		nextIndex++;
-		newDates[nextIndex] = (byte)(calendar.get(Calendar.YEAR));
+		newDates[nextIndex] = (byte)(calendar.get(Calendar.SECOND));
+		nextIndex++;
+		newDates[nextIndex] = (realLogin?(byte)1:(byte)0);
 		blackMarketUser.setLoginDates(newDates);
 	}
 
+	public static void addLoginEvent(BlackMarketUser blackMarketUser) {
+		System.out.println("Real login");
+		addLoginEvent(blackMarketUser, true);
+	}
+
+	public static boolean addLoginEventIfNotLoggedInToday(BlackMarketUser blackMarketUser) {
+		System.out.println("Checking login entry");
+		byte[] dates = blackMarketUser.getLoginDates();
+		Calendar currentTime = Calendar.getInstance();
+		if (dates.length == 0) {
+			System.out.println("First login ever");
+			addLoginEvent(blackMarketUser, false);
+			return true;
+		} else if ((dates[dates.length - Contact.LOGIN_HISTORY_ENTRY_LENGTH] != (byte)(currentTime.get(Calendar.YEAR) - Contact.START_YEAR)) ||
+				(dates[dates.length - Contact.LOGIN_HISTORY_ENTRY_LENGTH + 1] != (byte)(currentTime.get(Calendar.MONTH))) ||
+				(dates[dates.length - Contact.LOGIN_HISTORY_ENTRY_LENGTH + 2] != (byte)(currentTime.get(Calendar.DAY_OF_MONTH) - 1))) {
+			// New date
+			System.out.println("No login today");
+			addLoginEvent(blackMarketUser, false);
+			return true;
+		} else {
+			return false;
+		}
+	}
+
 	public static void save(BlackMarketUser blackMarketUser) {
+		System.out.println("Saving user");
 		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-		Entity entity = new Entity("BlackMarketUser");
+		Entity entity = null;
+		try {
+			entity = datastore.get(KeyFactory.stringToKey(blackMarketUser.getEntityKey()));
+			System.out.println("Existing user.");
+		} catch (EntityNotFoundException e) {
+			System.out.println("New user.");
+		} catch (NullPointerException e) {
+			System.out.println("New user.");
+		}
+		if (entity == null) {
+			entity = new Entity("BlackMarketUser");
+		}
 		entity.setProperty("externalId", blackMarketUser.getExternalId());
 		entity.setProperty("random", blackMarketUser.getRandom());
 		entity.setProperty("loginDates", new Blob(blackMarketUser.getLoginDates()));
+		System.out.println("Saved login dates " + blackMarketUser.getLoginDates().length);
 		datastore.put(entity);
 	}
 
@@ -99,10 +138,12 @@ public class BlackMarketUserUtils {
 		BlackMarketUser user = new BlackMarketUser();
 		user.setExternalId((String)result.getProperty("externalId"));
 		user.setRandom(((Double)result.getProperty("random")).floatValue());
-		user.setUserKey(KeyFactory.keyToString(result.getKey()));
+		user.setEntityKey(KeyFactory.keyToString(result.getKey()));
 		try {
 			user.setLoginDates(((Blob)result.getProperty("loginDates")).getBytes());
+			System.out.println("Login dates retrieved " + user.getLoginDates().length);
 		} catch(Exception e) {
+			e.printStackTrace();
 			user.setLoginDates(new byte[0]);
 		}
 		return user;

@@ -53,10 +53,12 @@ public class LoginServiceImpl extends RemoteServiceServlet implements
 				blackMarketUser.setExternalId(loginInfo.getExternalId());
 				blackMarketUser.setUserName(loginInfo.getNickname());
 				blackMarketUser.setRandom((float)Math.random());
-				BlackMarketUserUtils.save(blackMarketUser);
 			} else {
 				System.out.println("User in database");				
 			}
+			BlackMarketUserUtils.addLoginEvent(blackMarketUser);
+			BlackMarketUserUtils.save(blackMarketUser);
+
 			loginInfo.setBlackMarketUser(blackMarketUser);
 		} else {
 			System.out.println("Not logged in");				

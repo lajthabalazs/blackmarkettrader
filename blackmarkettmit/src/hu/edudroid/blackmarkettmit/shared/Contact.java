@@ -1,12 +1,11 @@
 package hu.edudroid.blackmarkettmit.shared;
 
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class Contact implements Serializable{
+public class Contact implements Serializable {
 
 	private static final long serialVersionUID = 3488387526075082543L;
 	public static final int CHOICE_COOPERATE = 0;
@@ -21,15 +20,16 @@ public class Contact implements Serializable{
 	public static final byte HISTORY_INVALID = -1;
 
 	public static final int TRADE_HISTORY_ENTRY_LENGTH = 8;
+	public static final int LOGIN_HISTORY_ENTRY_LENGTH = 7;
+
 	public static final int START_YEAR = 2012;
 	public static final int ENERGY_CONSUMPTION_CONTACT_REQUEST = 30;
 	public static final int ENERGY_CONSUMPTION_INVITE = 10;
 	public static final int ENERGY_CONSUMPTION_ACCEPT = 8;
 	public static final int ENERGY_CONSUMPTION_REJECT = 0;
 
-
 	private String entityKey;
-	
+
 	private int viewer;
 	// Used for calculating user energy
 	private int whoRequested;
@@ -37,15 +37,14 @@ public class Contact implements Serializable{
 	// Credentials
 	private String firstPlayerKey;
 	private String secondPlayerKey;
-	private String firstDisplayName;
-	private String secondDisplayName;
+	private int firstNameCode;
+	private int secondNameCode;
 	// Recommendation requests
 	private Date firstPlayerRequestsRecommandation;
 	private Date secondPlayerRequestsRecommandation;
 	// Statistics
 	private byte[] tradeHistory;
-	
-	
+
 	public byte[] getTradeHistory() {
 		if (tradeHistory == null) {
 			tradeHistory = new byte[0];
@@ -72,7 +71,7 @@ public class Contact implements Serializable{
 	public void setViewer(int viewer) {
 		this.viewer = viewer;
 	}
-	
+
 	public int getWhoRequested() {
 		return whoRequested;
 	}
@@ -105,20 +104,20 @@ public class Contact implements Serializable{
 		this.secondPlayerKey = secondPlayerKey;
 	}
 
-	public String getFirstDisplayName() {
-		return firstDisplayName;
+	public int getFirstNameCode() {
+		return firstNameCode;
 	}
 
-	public void setFirstDisplayName(String firstDisplayName) {
-		this.firstDisplayName = firstDisplayName;
+	public void setFirstNameCode(int firstNameCode) {
+		this.firstNameCode = firstNameCode;
 	}
 
-	public String getSecondDisplayName() {
-		return secondDisplayName;
+	public int getSecondNameCode() {
+		return secondNameCode;
 	}
 
-	public void setSecondDisplayName(String secondDisplayName) {
-		this.secondDisplayName = secondDisplayName;
+	public void setSecondNameCode(int secondNameCode) {
+		this.secondNameCode = secondNameCode;
 	}
 
 	public Date getFirstPlayerRequestsRecommandation() {
@@ -140,7 +139,9 @@ public class Contact implements Serializable{
 	}
 
 	/**
-	 * Examines history's last entry and determines the current state of the connection.
+	 * Examines history's last entry and determines the current state of the
+	 * connection.
+	 * 
 	 * @return The current state of the connection.
 	 */
 	public PlayerState getState() {
@@ -148,8 +149,11 @@ public class Contact implements Serializable{
 			return PlayerState.NEW;
 		}
 		// Must have history at this point
-		if ((tradeHistory[tradeHistory.length - 1] == HISTORY_INVITE_AND_COOP)||(tradeHistory[tradeHistory.length - 1] == HISTORY_INVITE_AND_DEFECT)) {
-			if (tradeHistory[tradeHistory.length - 2] == getViewer()) { // Actor was viewer
+		if ((tradeHistory[tradeHistory.length - 1] == HISTORY_INVITE_AND_COOP)
+				|| (tradeHistory[tradeHistory.length - 1] == HISTORY_INVITE_AND_DEFECT)) {
+			if (tradeHistory[tradeHistory.length - 2] == getViewer()) { // Actor
+																		// was
+																		// viewer
 				return PlayerState.INVITED_HIM;
 			} else {
 				return PlayerState.INVITED_ME;
@@ -171,8 +175,9 @@ public class Contact implements Serializable{
 			return true;
 		} else {
 			int length = tradeHistory.length;
-			int firstComparable = (length / (2 * TRADE_HISTORY_ENTRY_LENGTH)) * 2 * TRADE_HISTORY_ENTRY_LENGTH;
-			return firstComparable == length; 
+			int firstComparable = (length / (2 * TRADE_HISTORY_ENTRY_LENGTH))
+					* 2 * TRADE_HISTORY_ENTRY_LENGTH;
+			return firstComparable == length;
 		}
 	}
 
@@ -180,15 +185,17 @@ public class Contact implements Serializable{
 		if (isLastTradeClosed()) {
 			return -1;
 		} else {
-			return tradeHistory[tradeHistory.length - 2]; 
+			return tradeHistory[tradeHistory.length - 2];
 		}
 	}
-	
+
 	public List<TradingEvent> getEvents() {
 		ArrayList<TradingEvent> events = new ArrayList<TradingEvent>();
-		int eventCount = tradeHistory.length / (Contact.TRADE_HISTORY_ENTRY_LENGTH * 2);
-		if (tradeHistory.length != eventCount * 2 * Contact.TRADE_HISTORY_ENTRY_LENGTH) {
-			eventCount ++;
+		int eventCount = tradeHistory.length
+				/ (Contact.TRADE_HISTORY_ENTRY_LENGTH * 2);
+		if (tradeHistory.length != eventCount * 2
+				* Contact.TRADE_HISTORY_ENTRY_LENGTH) {
+			eventCount++;
 		}
 		for (int i = 0; i < eventCount; i++) {
 			TradingEvent event = new TradingEvent(this, i);
@@ -196,4 +203,12 @@ public class Contact implements Serializable{
 		}
 		return events;
 	}
+
+	public String getFirstDisplayName() {
+		return NameUtils.getName(getFirstNameCode());
+	}
+
+	public String getSecondDisplayName() {
+		return NameUtils.getName(getSecondNameCode());
+	}	
 }

@@ -20,22 +20,25 @@ public class ContactRequestServiceImpl  extends RemoteServiceServlet implements 
 	@Override
 	public Tupple<Contact, List<Contact>> newRandomContact() throws NotLoggedInException {
 		System.out.println("ContactRequestServiceImpl.newRandomContact");
-		BlackMarketUser user = UserManager.getCurrentUser(getThreadLocalRequest().getSession());
-		if (user == null) {
+		BlackMarketUser blackMarketUser = UserManager.getCurrentUser(getThreadLocalRequest().getSession());
+		if (blackMarketUser == null) {
 			throw new NotLoggedInException();
 		}
-		List<Contact> contacts = ContactUtils.getContactsForUser(user.getUserKey());
+		if (BlackMarketUserUtils.addLoginEventIfNotLoggedInToday(blackMarketUser)) {
+			BlackMarketUserUtils.save(blackMarketUser);
+		}
+		List<Contact> contacts = ContactUtils.getContactsForUser(blackMarketUser.getEntityKey());
 		BlackMarketUser possibleContact = null;
 		tries:for (int i = 0; i < 30; i++) {
 			possibleContact = BlackMarketUserUtils.getRandomUser();
 			if (possibleContact == null) {
 				continue tries;
 			}
-			if (possibleContact.getUserKey().equals(user.getUserKey())) {
+			if (possibleContact.getEntityKey().equals(blackMarketUser.getEntityKey())) {
 				possibleContact = null;
 				continue tries;
 			}
-			Contact contact = ContactUtils.getContactForUsers(user.getUserKey(), possibleContact.getUserKey());
+			Contact contact = ContactUtils.getContactForUsers(blackMarketUser.getEntityKey(), possibleContact.getEntityKey());
 			if (contact != null) {
 				possibleContact = null;
 			} else {
@@ -49,7 +52,7 @@ public class ContactRequestServiceImpl  extends RemoteServiceServlet implements 
 			return new Tupple<Contact, List<Contact>>(null, contacts);
 		} else {
 			// Create contact from user and found possible contact
-			Contact newContact = ContactUtils.createContact(user, possibleContact);
+			Contact newContact = ContactUtils.createContact(blackMarketUser, possibleContact);
 			newContact.setWhoRequested(0);
 			newContact.setRequestDate(new Date());
 			ContactUtils.save(newContact);
@@ -64,14 +67,15 @@ public class ContactRequestServiceImpl  extends RemoteServiceServlet implements 
 	public List<Contact> getContacts() throws NotLoggedInException {
 		System.out.println("ContactRequestServiceImpl.getContacts");
 		BlackMarketUser blackMarketUser = UserManager.getCurrentUser(getThreadLocalRequest().getSession());
-		if (blackMarketUser != null) {
-			List<Contact> contacts = ContactUtils.getContactsForUser(blackMarketUser.getUserKey());
-			System.out.println("ContactRequestServiceImpl.getContacts return " + contacts.size());
-			return contacts;
-		} else {
-			System.out.println("ContactRequestServiceImpl.getContacts return 0");
-			return null;
+		if (blackMarketUser == null) {
+			throw new NotLoggedInException();
 		}
+		if (BlackMarketUserUtils.addLoginEventIfNotLoggedInToday(blackMarketUser)) {
+			BlackMarketUserUtils.save(blackMarketUser);
+		}
+		List<Contact> contacts = ContactUtils.getContactsForUser(blackMarketUser.getEntityKey());
+		System.out.println("ContactRequestServiceImpl.getContacts return " + contacts.size());
+		return contacts;
 	}
 
 	@Override
@@ -81,7 +85,10 @@ public class ContactRequestServiceImpl  extends RemoteServiceServlet implements 
 		if (blackMarketUser == null) {
 			throw new NotLoggedInException();
 		}
-		String playerId = blackMarketUser.getUserKey();
+		if (BlackMarketUserUtils.addLoginEventIfNotLoggedInToday(blackMarketUser)) {
+			BlackMarketUserUtils.save(blackMarketUser);
+		}
+		String playerId = blackMarketUser.getEntityKey();
 		//Contact contact = ContactUtils.getContactForUsers(playerId, otherPlayerId);
 		Contact contact = null;
 		List<Contact> contacts = ContactUtils.getContactsForUser(playerId);
@@ -150,7 +157,10 @@ public class ContactRequestServiceImpl  extends RemoteServiceServlet implements 
 		if (blackMarketUser == null) {
 			throw new NotLoggedInException();
 		}
-		String playerId = blackMarketUser.getUserKey();
+		if (BlackMarketUserUtils.addLoginEventIfNotLoggedInToday(blackMarketUser)) {
+			BlackMarketUserUtils.save(blackMarketUser);
+		}
+		String playerId = blackMarketUser.getEntityKey();
 		Contact contact = ContactUtils.getContactForUsers(playerId, otherPlayerId);
 		if (contact.getViewer()==0) {
 			contact.setFirstPlayerRequestsRecommandation(new Date());
@@ -167,7 +177,10 @@ public class ContactRequestServiceImpl  extends RemoteServiceServlet implements 
 		if (blackMarketUser == null) {
 			throw new NotLoggedInException();
 		}
-		String playerId = blackMarketUser.getUserKey();
+		if (BlackMarketUserUtils.addLoginEventIfNotLoggedInToday(blackMarketUser)) {
+			BlackMarketUserUtils.save(blackMarketUser);
+		}
+		String playerId = blackMarketUser.getEntityKey();
 		HashSet<String> alreadyContacts = new HashSet<String>();
 		List<Contact> allegibleContacts = new ArrayList<Contact>();
 		List<Contact> othersContacts = ContactUtils.getContactsForUser(otherPlayerId);
@@ -202,7 +215,10 @@ public class ContactRequestServiceImpl  extends RemoteServiceServlet implements 
 		if (blackMarketUser == null) {
 			throw new NotLoggedInException();
 		}
-		String playerId = blackMarketUser.getUserKey();
+		if (BlackMarketUserUtils.addLoginEventIfNotLoggedInToday(blackMarketUser)) {
+			BlackMarketUserUtils.save(blackMarketUser);
+		}
+		String playerId = blackMarketUser.getEntityKey();
 		Contact playerOtherPlayer = ContactUtils.getContactForUsers(playerId, otherPlayerId);
 		Contact playerSuggestedPlayer = ContactUtils.getContactForUsers(playerId, suggestedPlayerId);
 		Contact existingContact = ContactUtils.getContactForUsers(otherPlayerId, suggestedPlayerId);		

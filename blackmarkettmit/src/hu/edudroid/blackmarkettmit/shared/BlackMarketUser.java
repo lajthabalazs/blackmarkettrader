@@ -6,7 +6,7 @@ public class BlackMarketUser implements Serializable{
 
 	private static final long serialVersionUID = -8822523082905084208L;
 	private static final int MAX_ENERGY = 90;
-	private String userKey;
+	private String entityKey;
 	private String externalId;
 	private String userName;
 	private float random;
@@ -16,11 +16,11 @@ public class BlackMarketUser implements Serializable{
 		
 	}
 
-	public String getUserKey() {
-		return userKey;
+	public String getEntityKey() {
+		return entityKey;
 	}
-	public void setUserKey(String userKey) {
-		this.userKey = userKey;
+	public void setEntityKey(String entityKey) {
+		this.entityKey = entityKey;
 	}
 
 	public String getExternalId() {

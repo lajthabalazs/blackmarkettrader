@@ -99,8 +99,8 @@ public class ContactUtils {
 
 		entity.setProperty("firstPlayerKey", contact.getFirstPlayerKey());
 		entity.setProperty("secondPlayerKey", contact.getSecondPlayerKey());
-		entity.setProperty("firstDisplayName", contact.getFirstDisplayName());
-		entity.setProperty("secondDisplayName", contact.getSecondDisplayName());
+		entity.setProperty("firstNameCode", contact.getFirstNameCode());
+		entity.setProperty("secondNameCode", contact.getSecondNameCode());
 
 		entity.setProperty("firstPlayerRequestsRecommandation",contact.getFirstPlayerRequestsRecommandation());
 		entity.setProperty("secondPlayerRequestsRecommandation",contact.getSecondPlayerRequestsRecommandation());
@@ -116,8 +116,8 @@ public class ContactUtils {
 		contact.setRequestDate((Date)result.getProperty("requestDate"));
 		contact.setFirstPlayerKey((String)result.getProperty("firstPlayerKey"));
 		contact.setSecondPlayerKey((String)result.getProperty("secondPlayerKey"));
-		contact.setFirstDisplayName((String)result.getProperty("firstDisplayName"));
-		contact.setSecondDisplayName((String)result.getProperty("secondDisplayName"));
+		contact.setFirstNameCode(((Number)result.getProperty("firstNameCode")).intValue());
+		contact.setSecondNameCode(((Number)result.getProperty("secondNameCode")).intValue());
 		
 		if (result.hasProperty("firstPlayerRequestsRecommandation")) {
 			contact.setFirstPlayerRequestsRecommandation((Date)result.getProperty("firstPlayerRequestsRecommandation"));
@@ -148,10 +148,10 @@ public class ContactUtils {
 		System.out.println("Contact.createContact");
 		Contact contact = new Contact();
 		contact.setViewer(0);
-		contact.setFirstPlayerKey(user.getUserKey());
-		contact.setSecondPlayerKey(contactUser.getUserKey());
-		contact.setFirstDisplayName("Name " + ((int)(Math.random() * 1000000)));
-		contact.setSecondDisplayName("Name " + ((int)(Math.random() * 1000000)));
+		contact.setFirstPlayerKey(user.getEntityKey());
+		contact.setSecondPlayerKey(contactUser.getEntityKey());
+		contact.setFirstNameCode((int)(Math.random() * Integer.MAX_VALUE));
+		contact.setSecondNameCode((int)(Math.random() * Integer.MAX_VALUE));
 		return contact;
 	}
 	

@@ -38,7 +38,7 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 		ClickHandler, TradeActionHandler, SuggestListener {
 	private GetContactDialog getContactDialog;
-	private static final String VERSION = "3 / score revieled";
+	private static final String VERSION = "11 / gangsta' names";
 	private Button addContactButton;
 	private List<Contact> contactList;
 	private LoginInfo loginInfo;
@@ -122,7 +122,6 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 				for (TradingEvent event : events) {
 					totalScore += event.getPointValue();
 					if (event.getDate().equals(currentDate)) {
-						System.out.println("Event is in range");
 						usedEnergy += event.getUsedEnergy();
 					}
 				}
@@ -138,6 +137,8 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 
 	private void updateUI(List<Contact> result) {
 		processContacts(result);
+		// Check login history
+		System.out.println("Login history " + loginInfo.getBlackMarketUser().getLoginDates().length);
 		RootPanel versionPanel = RootPanel.get("versionHolder");
 		versionPanel.clear();
 		versionPanel.add(new Label("Version " + VERSION));

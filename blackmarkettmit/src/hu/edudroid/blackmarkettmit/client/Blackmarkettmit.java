@@ -43,10 +43,10 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 	private List<Contact> contactList;
 	private LoginInfo loginInfo;
 	private int remainingEnergy = 0;
+	private int totalScore = 0;
 
 	ContactRequestServiceAsync contactRequestsService = GWT.create(ContactRequestService.class);
 	private SuggestDialog suggestDialog;
-	private int totalScore;
 
 	
 	public void onModuleLoad() {
@@ -98,6 +98,7 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 		this.contactList = contacts;
 		if (loginInfo != null) {
 			int usedEnergy = 0;
+			totalScore = 0;
 			for (Contact contact : contactList) {
 				// Check if contact creation reduced energy
 				if (contact.getViewer() == contact.getWhoRequested()) {

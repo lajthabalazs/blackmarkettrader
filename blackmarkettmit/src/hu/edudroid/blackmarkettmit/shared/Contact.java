@@ -33,7 +33,9 @@ public class Contact implements Serializable {
 	private int viewer;
 	// Used for calculating user energy
 	private int whoRequested;
+	private String whoSuggested;
 	private Date requestDate;
+	private Date creationDate;
 	// Credentials
 	private String firstPlayerKey;
 	private String secondPlayerKey;
@@ -80,12 +82,28 @@ public class Contact implements Serializable {
 		this.whoRequested = whoRequested;
 	}
 
+	public String getWhoSuggested() {
+		return whoSuggested;
+	}
+
+	public void setWhoSuggested(String whoSuggested) {
+		this.whoSuggested = whoSuggested;
+	}
+
 	public Date getRequestDate() {
 		return requestDate;
 	}
 
 	public void setRequestDate(Date requestDate) {
 		this.requestDate = requestDate;
+	}
+
+	public Date getCreationDate() {
+		return creationDate;
+	}
+
+	public void setCreationDate(Date creationDate) {
+		this.creationDate = creationDate;
 	}
 
 	public String getFirstPlayerKey() {

@@ -227,7 +227,6 @@ public class ContactRequestServiceImpl  extends RemoteServiceServlet implements 
 			BlackMarketUser suggestedUser = BlackMarketUserUtils.getUserByKey(suggestedPlayerId);
 			Contact newContact = ContactUtils.createContact(otherUser, suggestedUser);
 			newContact.setWhoRequested(0);
-
 			if (playerOtherPlayer.getViewer() == 0) {
 				newContact.setRequestDate(playerOtherPlayer.getSecondPlayerRequestsRecommandation());
 				playerOtherPlayer.setSecondPlayerRequestsRecommandation(null);
@@ -235,7 +234,8 @@ public class ContactRequestServiceImpl  extends RemoteServiceServlet implements 
 				newContact.setRequestDate(playerOtherPlayer.getFirstPlayerRequestsRecommandation());
 				playerOtherPlayer.setFirstPlayerRequestsRecommandation(null);
 			}
-			ContactUtils.save(newContact);	
+			newContact.setWhoSuggested(blackMarketUser.getEntityKey());
+			ContactUtils.save(newContact);
 			ContactUtils.save(playerOtherPlayer);
 		}
 	}

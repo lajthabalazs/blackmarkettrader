@@ -96,6 +96,8 @@ public class ContactUtils {
 
 		entity.setProperty("whoRequested", contact.getWhoRequested());
 		entity.setProperty("requestDate", contact.getRequestDate());
+		entity.setProperty("whoSuggested", contact.getWhoSuggested());
+		entity.setProperty("creationDate", contact.getCreationDate());
 
 		entity.setProperty("firstPlayerKey", contact.getFirstPlayerKey());
 		entity.setProperty("secondPlayerKey", contact.getSecondPlayerKey());
@@ -114,6 +116,8 @@ public class ContactUtils {
 		contact.setEntityKey(KeyFactory.keyToString(result.getKey()));
 		contact.setWhoRequested(((Number)result.getProperty("whoRequested")).intValue());
 		contact.setRequestDate((Date)result.getProperty("requestDate"));
+		contact.setCreationDate((Date)result.getProperty("creationDate"));
+		contact.setWhoSuggested((String)result.getProperty("whoSuggested"));
 		contact.setFirstPlayerKey((String)result.getProperty("firstPlayerKey"));
 		contact.setSecondPlayerKey((String)result.getProperty("secondPlayerKey"));
 		contact.setFirstNameCode(((Number)result.getProperty("firstNameCode")).intValue());
@@ -148,6 +152,7 @@ public class ContactUtils {
 		System.out.println("Contact.createContact");
 		Contact contact = new Contact();
 		contact.setViewer(0);
+		contact.setCreationDate(new Date());
 		contact.setFirstPlayerKey(user.getEntityKey());
 		contact.setSecondPlayerKey(contactUser.getEntityKey());
 		contact.setFirstNameCode((int)(Math.random() * Integer.MAX_VALUE));

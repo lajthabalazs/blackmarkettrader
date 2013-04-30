@@ -23,9 +23,9 @@ public class InviteDialog extends DialogBox implements ClickHandler {
 		VerticalPanel mainPanel = new VerticalPanel();
 		String playerName = null;
 		if (player.getViewer() == 0) {
-			playerName = player.getSecondDebugDisplayName();
+			playerName = player.getSecondDisplayName();
 		} else {
-			playerName = player.getFirstDebugDisplayName();
+			playerName = player.getFirstDisplayName();
 		}
 		setText("Invite " + playerName + " to trade");
 		Label label = new Label("What will you bring to the deal once " + playerName + " accepts you invitation?");

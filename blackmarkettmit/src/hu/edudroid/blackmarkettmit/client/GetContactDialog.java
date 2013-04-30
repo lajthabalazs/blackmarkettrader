@@ -28,29 +28,32 @@ public class GetContactDialog extends DialogBox implements ClickHandler {
 		FlexTable table = new FlexTable();
 		if (players!=null) {
 			for (int i = 0; i < players.size(); i++) {
+				boolean alreadyRequested = false;
 				if (players.get(i).getViewer() == 0) {
 					table.setWidget(i, 0, new Label(players.get(i).getSecondDisplayName()));
-					if (players.get(i).getFirstPlayerRequestsRecommandation() == null) {
-						Button requestContactButton = new RequestContactButton(players.get(i), listener);
-						table.setWidget(i, 1, requestContactButton);
-					} else {
-						table.setWidget(i, 1, new Label("Already requested"));
-					}
+					alreadyRequested = (players.get(i).getFirstPlayerRequestsRecommandation() != null);
 				} else {
 					table.setWidget(i, 0, new Label(players.get(i).getFirstDisplayName()));
-					if (players.get(i).getSecondPlayerRequestsRecommandation() == null) {
-						Button requestContactButton = new RequestContactButton(players.get(i), listener);
-						table.setWidget(i, 1, requestContactButton);
-					} else {
-						table.setWidget(i, 1, new Label("Already requested"));
+					alreadyRequested = (players.get(i).getSecondPlayerRequestsRecommandation() != null);
+				}
+				if (!alreadyRequested) {
+					Button requestContactButton = new RequestContactButton(players.get(i), listener);
+					if (remainingEnergy < Contact.ENERGY_CONSUMPTION_CONTACT_REQUEST) {
+						requestContactButton.setEnabled(false);
 					}
+					table.setWidget(i, 1, requestContactButton);
+				} else {
+					table.setWidget(i, 1, new Label("Already requested"));
 				}
 				table.getCellFormatter().setAlignment(i, 1,  HasHorizontalAlignment.ALIGN_RIGHT, HasVerticalAlignment.ALIGN_TOP);
 			}
 		}
 		cancelButton = new Button("Never mind");
 		cancelButton.addClickHandler(this);
-		randomButton = new Button("Find me someone");
+		randomButton = new Button("Find me someone (" + Contact.ENERGY_CONSUMPTION_CONTACT_REQUEST +"E)");
+		if (remainingEnergy < Contact.ENERGY_CONSUMPTION_CONTACT_REQUEST) {
+			randomButton.setEnabled(false);
+		}
 		randomButton.addClickHandler(this);
 		table.setWidth("100%");
 		ScrollPanel tableScrollPanel = new ScrollPanel(table);

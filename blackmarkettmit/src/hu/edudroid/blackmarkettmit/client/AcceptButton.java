@@ -11,7 +11,7 @@ public class AcceptButton extends Button implements ClickHandler{
 	private TradeActionHandler listener;
 	
 	public AcceptButton(Contact player, TradeActionHandler listener) {
-		super("Accept");
+		super("Accept (" + Contact.ENERGY_CONSUMPTION_ACCEPT + "E)");
 		this.player = player;
 		this.listener = listener;
 		addClickHandler(this);

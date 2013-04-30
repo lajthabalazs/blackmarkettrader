@@ -101,8 +101,6 @@ public class ContactUtils {
 		entity.setProperty("secondPlayerKey", contact.getSecondPlayerKey());
 		entity.setProperty("firstDisplayName", contact.getFirstDisplayName());
 		entity.setProperty("secondDisplayName", contact.getSecondDisplayName());
-		entity.setProperty("firstDebugDisplayName", contact.getFirstDebugDisplayName());
-		entity.setProperty("secondDebugDisplayName", contact.getSecondDebugDisplayName());
 
 		entity.setProperty("firstPlayerRequestsRecommandation",contact.getFirstPlayerRequestsRecommandation());
 		entity.setProperty("secondPlayerRequestsRecommandation",contact.getSecondPlayerRequestsRecommandation());
@@ -114,15 +112,12 @@ public class ContactUtils {
 		System.out.println("Contact.createFromEntity");
 		Contact contact = new Contact();
 		contact.setEntityKey(KeyFactory.keyToString(result.getKey()));
-
-		contact.setWhoRequested((Integer)result.getProperty("whoRequested"));
+		contact.setWhoRequested(((Number)result.getProperty("whoRequested")).intValue());
 		contact.setRequestDate((Date)result.getProperty("requestDate"));
 		contact.setFirstPlayerKey((String)result.getProperty("firstPlayerKey"));
 		contact.setSecondPlayerKey((String)result.getProperty("secondPlayerKey"));
 		contact.setFirstDisplayName((String)result.getProperty("firstDisplayName"));
 		contact.setSecondDisplayName((String)result.getProperty("secondDisplayName"));
-		contact.setFirstDebugDisplayName((String)result.getProperty("firstDebugDisplayName"));
-		contact.setSecondDebugDisplayName((String)result.getProperty("secondDebugDisplayName"));
 		
 		if (result.hasProperty("firstPlayerRequestsRecommandation")) {
 			contact.setFirstPlayerRequestsRecommandation((Date)result.getProperty("firstPlayerRequestsRecommandation"));
@@ -157,8 +152,6 @@ public class ContactUtils {
 		contact.setSecondPlayerKey(contactUser.getUserKey());
 		contact.setFirstDisplayName("Name " + ((int)(Math.random() * 1000000)));
 		contact.setSecondDisplayName("Name " + ((int)(Math.random() * 1000000)));
-		contact.setFirstDebugDisplayName(user.getExternalId());
-		contact.setSecondDebugDisplayName(contactUser.getExternalId());
 		return contact;
 	}
 	
@@ -171,7 +164,7 @@ public class ContactUtils {
 		Calendar calendar = Calendar.getInstance();
 		newTradeHistory[position] = (byte) (calendar.get(Calendar.YEAR) - Contact.START_YEAR);
 		newTradeHistory[position + 1] = (byte) calendar.get(Calendar.MONTH);
-		newTradeHistory[position + 2] = (byte) calendar.get(Calendar.DAY_OF_MONTH);
+		newTradeHistory[position + 2] = (byte) (calendar.get(Calendar.DAY_OF_MONTH) - 1);
 		newTradeHistory[position + 3] = (byte) calendar.get(Calendar.HOUR);
 		newTradeHistory[position + 4] = (byte) calendar.get(Calendar.MINUTE);
 		newTradeHistory[position + 5] = (byte) calendar.get(Calendar.SECOND);

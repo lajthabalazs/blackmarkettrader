@@ -17,17 +17,17 @@ public class SuggestDialog extends DialogBox implements ClickHandler {
 	public SuggestDialog(Contact contact, List<Contact> result, SuggestListener listener) {
 		super();
 		if (contact.getViewer() == 0) {
-			setText("Suggesting contact for " + contact.getSecondDebugDisplayName());
+			setText("Suggesting contact for " + contact.getSecondDisplayName());
 		} else {
-			setText("Suggesting contact for " + contact.getFirstDebugDisplayName());
+			setText("Suggesting contact for " + contact.getFirstDisplayName());
 		}
 		VerticalPanel mainPanel = new VerticalPanel();
 		for (Contact suggestableContact : result) {
 			HorizontalPanel panel = new HorizontalPanel();
 			if (suggestableContact.getViewer() == 0) {
-				panel.add(new Label(suggestableContact.getSecondDebugDisplayName()));
+				panel.add(new Label(suggestableContact.getSecondDisplayName()));
 			} else {
-				panel.add(new Label(suggestableContact.getFirstDebugDisplayName()));
+				panel.add(new Label(suggestableContact.getFirstDisplayName()));
 			}
 			panel.add(new SendSuggestionButton(contact, suggestableContact, listener));
 			mainPanel.add(panel);

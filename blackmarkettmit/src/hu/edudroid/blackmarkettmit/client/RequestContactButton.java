@@ -13,7 +13,7 @@ public class RequestContactButton extends Button implements ClickHandler {
 	private Contact contact;
 
 	public RequestContactButton(Contact contact, GetContactDialogListener listener) {
-		super("Ask for contact");
+		super("Ask for contact (" + Contact.ENERGY_CONSUMPTION_CONTACT_REQUEST +"E)");
 		this.contact = contact;
 		this.listener = listener;
 		super.addClickHandler(this);

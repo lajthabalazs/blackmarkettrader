@@ -24,9 +24,9 @@ public class AcceptDialog extends DialogBox implements ClickHandler {
 		Label label;
 		String playerName;
 		if (player.getViewer() == 0) {
-			playerName = player.getSecondDebugDisplayName();
+			playerName = player.getSecondDisplayName();
 		} else {
-			playerName = player.getFirstDebugDisplayName();
+			playerName = player.getFirstDisplayName();
 		}
 		setText("Accept " + playerName + "'s invitation");
 		label = new Label(playerName + " want's to buy a painting! Do you have something?");

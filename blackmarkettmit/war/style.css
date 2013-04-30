@@ -251,6 +251,11 @@ img.aligncenter {
 	width: 100%;
 }
 
+.gwt-Button:disabled {
+	background: #A67274;
+	color: #CCCCCC;
+}
+
 #actionTableHeader {
 	color: #E42E33;
 	font-weight: bold;

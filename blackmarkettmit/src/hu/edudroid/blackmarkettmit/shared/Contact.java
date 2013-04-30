@@ -22,7 +22,11 @@ public class Contact implements Serializable{
 
 	public static final int TRADE_HISTORY_ENTRY_LENGTH = 8;
 	public static final int START_YEAR = 2012;
-	public static final int REQUEST_ENERGY_CONSUMPTION = 30;
+	public static final int ENERGY_CONSUMPTION_CONTACT_REQUEST = 30;
+	public static final int ENERGY_CONSUMPTION_INVITE = 10;
+	public static final int ENERGY_CONSUMPTION_ACCEPT = 8;
+	public static final int ENERGY_CONSUMPTION_REJECT = 0;
+
 
 	private String entityKey;
 	
@@ -35,8 +39,6 @@ public class Contact implements Serializable{
 	private String secondPlayerKey;
 	private String firstDisplayName;
 	private String secondDisplayName;
-	private String firstDebugDisplayName;
-	private String secondDebugDisplayName;
 	// Recommendation requests
 	private Date firstPlayerRequestsRecommandation;
 	private Date secondPlayerRequestsRecommandation;
@@ -117,22 +119,6 @@ public class Contact implements Serializable{
 
 	public void setSecondDisplayName(String secondDisplayName) {
 		this.secondDisplayName = secondDisplayName;
-	}
-
-	public String getFirstDebugDisplayName() {
-		return firstDebugDisplayName;
-	}
-
-	public void setFirstDebugDisplayName(String firstDebugDisplayName) {
-		this.firstDebugDisplayName = firstDebugDisplayName;
-	}
-
-	public String getSecondDebugDisplayName() {
-		return secondDebugDisplayName;
-	}
-
-	public void setSecondDebugDisplayName(String secondDebugDisplayName) {
-		this.secondDebugDisplayName = secondDebugDisplayName;
 	}
 
 	public Date getFirstPlayerRequestsRecommandation() {

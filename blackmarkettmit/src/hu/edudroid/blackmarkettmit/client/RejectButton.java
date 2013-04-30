@@ -11,7 +11,7 @@ public class RejectButton extends Button implements ClickHandler{
 	private TradeActionHandler listener;
 	
 	public RejectButton(Contact player, TradeActionHandler listener) {
-		super("Reject");
+		super("Reject (" + Contact.ENERGY_CONSUMPTION_REJECT + "E)");
 		this.player = player;
 		this.listener = listener;
 		addClickHandler(this);

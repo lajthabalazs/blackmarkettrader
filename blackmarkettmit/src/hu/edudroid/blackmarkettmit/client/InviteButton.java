@@ -11,7 +11,7 @@ public class InviteButton extends Button implements ClickHandler{
 	private TradeActionHandler listener;
 	
 	public InviteButton(Contact player, TradeActionHandler listener) {
-		super("Invite");
+		super("Invite (" + Contact.ENERGY_CONSUMPTION_INVITE + "E)");
 		this.player = player;
 		this.listener = listener;
 		addClickHandler(this);

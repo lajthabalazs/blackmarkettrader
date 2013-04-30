@@ -88,8 +88,7 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 			@Override
 			public void onSuccess(List<Contact> result) {
 				dialog.hide();
-				processContacts(result);
-				updateUI();
+				updateUI(result);
 			}
 		});
 	}
@@ -104,19 +103,19 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 				if (contact.getViewer() == contact.getWhoRequested()) {
 					Date requestDate = new Date(contact.getRequestDate());
 					if (requestDate.equals(currentDate)) {
-						usedEnergy += Contact.REQUEST_ENERGY_CONSUMPTION;
+						usedEnergy += Contact.ENERGY_CONSUMPTION_CONTACT_REQUEST;
 					}
 				}
 				// Check if contact request reduced energy
 				if (contact.getViewer() == 0) {
 					if (contact.getFirstPlayerRequestsRecommandation() != null &&
 							new Date(contact.getFirstPlayerRequestsRecommandation()).equals(currentDate)) {
-						usedEnergy += Contact.REQUEST_ENERGY_CONSUMPTION;
+						usedEnergy += Contact.ENERGY_CONSUMPTION_CONTACT_REQUEST;
 					}
 				} else {
 					if (contact.getSecondPlayerRequestsRecommandation() != null &&
 							new Date(contact.getSecondPlayerRequestsRecommandation()).equals(currentDate)) {
-						usedEnergy += Contact.REQUEST_ENERGY_CONSUMPTION;
+						usedEnergy += Contact.ENERGY_CONSUMPTION_CONTACT_REQUEST;
 					}
 				}
 				List<TradingEvent> events = contact.getEvents();
@@ -137,7 +136,8 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 		getData();
 	}
 
-	private void updateUI() {
+	private void updateUI(List<Contact> result) {
+		processContacts(result);
 		RootPanel versionPanel = RootPanel.get("versionHolder");
 		versionPanel.clear();
 		versionPanel.add(new Label("Version " + VERSION));
@@ -250,12 +250,17 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 						.setWidget(nextRow, 3, new Label("Waiting response"));
 			} else if (player.getState() == PlayerState.INVITED_ME) {
 				HorizontalPanel buttonHolder = new HorizontalPanel();
-				buttonHolder.add(new AcceptButton(player, this));
-				buttonHolder.add(new RejectButton(player, this));
+				AcceptButton acceptButton = new AcceptButton(player, this);
+				buttonHolder.add(acceptButton);
+				acceptButton.setEnabled(remainingEnergy >= Contact.ENERGY_CONSUMPTION_ACCEPT);
+				RejectButton rejectButton = new RejectButton(player, this);
+				buttonHolder.add(rejectButton);
+				rejectButton.setEnabled(remainingEnergy >= Contact.ENERGY_CONSUMPTION_REJECT);
 				actionTable.setWidget(nextRow, 3, buttonHolder);
 			} else {
-				actionTable.setWidget(nextRow, 3,
-						new InviteButton(player, this));
+				InviteButton inviteButton = new InviteButton(player, this);
+				inviteButton.setEnabled(remainingEnergy >= Contact.ENERGY_CONSUMPTION_INVITE);
+				actionTable.setWidget(nextRow, 3, inviteButton);
 			}
 		}
 	}
@@ -322,8 +327,7 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 					}
 					new MessageDialog("Meet " + contactName + "!", "This is the beginning of a beautiful friendship..");
 				}
-				contactList = result.getSecond();
-				updateUI();
+				updateUI(result.getSecond());
 			}
 		});
 	}
@@ -392,21 +396,21 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 				dialog.hide();
 				if (result.getFirst() == ContactRequestService.PLAY_RESULT_COOPERATE) {
 					new MessageDialog("You got your money", "Congrats! You were right to trust " + otherPlayerName + ". You both got what you wanted. Cheers to an honest deal!");
-					updateUI();
+					updateUI(result.getSecond());
 				} else if (result.getFirst() == ContactRequestService.PLAY_RESULT_BOTH_DEFECTED) {
 					new MessageDialog("The money was fake", "Well that was a waste of time. Thank god you didn't fall for " + otherPlayerName + "'s trick.");
-					updateUI();
+					updateUI(result.getSecond());
 				} else if (result.getFirst() == ContactRequestService.PLAY_RESULT_I_DEFECTED) {
 					new MessageDialog(otherPlayerName + " paid the price", otherPlayerName + ", what a looser. Taking candy from a baby...");
-					updateUI();
+					updateUI(result.getSecond());
 				} else if (result.getFirst() == ContactRequestService.PLAY_RESULT_HE_DEFECTED) {
 					new MessageDialog("The money was fake", "Backstabbing bastard! You were wrong to trust " + otherPlayerName + ".");
-					updateUI();
+					updateUI(result.getSecond());
 				} else if (result.getFirst() == ContactRequestService.PLAY_RESULT_ACCEPTED) {
-					updateUI();
+					updateUI(result.getSecond());
 				} else if (result.getFirst() == ContactRequestService.PLAY_RESULT_DECLINED) {
 					new MessageDialog("Rejected", "Somthing went wrong, please wait while updating contact list.");
-					updateUI();
+					updateUI(result.getSecond());
 				}
 			}
 

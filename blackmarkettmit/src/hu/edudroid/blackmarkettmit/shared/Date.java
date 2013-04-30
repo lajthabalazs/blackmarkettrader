@@ -17,7 +17,7 @@ public class Date {
 		this.year = year;
 		this.month = month;
 		this.day = day;
-		this.hash = year * 10000 + month + day;
+		this.hash = year * 10000 + month * 100 + day;
 	}
 
 	public Date() {
@@ -28,7 +28,7 @@ public class Date {
 		year = Integer.parseInt(DateTimeFormat.getFormat( "y" ).format(date));
 		month = Integer.parseInt(DateTimeFormat.getFormat( "M" ).format(date)) - 1;
 		day = Integer.parseInt(DateTimeFormat.getFormat( "d" ).format(date)) - 1;
-		this.hash = year * 10000 + month + day;
+		this.hash = year * 10000 + month * 100 + day;
 	}
 
 	@Override

@@ -10,9 +10,9 @@ public class SuggestPanel extends FlowPanel {
 		super();
 		String displayName = null;
 		if (contact.getViewer() == 0) {
-			displayName = contact.getSecondDebugDisplayName();
+			displayName = contact.getSecondDisplayName();
 		} else {
-			displayName = contact.getFirstDebugDisplayName();
+			displayName = contact.getFirstDisplayName();
 		}
 		this.add(new Label(displayName + " is asking for a contact to trade with."));
 		this.add(new SuggestButton(contact, listener));

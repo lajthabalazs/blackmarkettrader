@@ -1,7 +1,5 @@
 package hu.edudroid.blackmarkettmit.shared;
 
-import com.google.gwt.i18n.client.DateTimeFormat;
-
 /**
  * A simple date class containing only year, month and day
  * @author lajthabalazs
@@ -20,17 +18,12 @@ public class Date {
 		this.hash = year * 10000 + month * 100 + day;
 	}
 
-	public Date() {
-		this(new java.util.Date());
+	public Date(byte[] loginHistory, int startPosition) {
+		this(loginHistory[startPosition] + Contact.START_YEAR,
+				loginHistory[startPosition + 1],
+				loginHistory[startPosition + 2]);
 	}
-
-	public Date(java.util.Date date) {
-		year = Integer.parseInt(DateTimeFormat.getFormat( "y" ).format(date));
-		month = Integer.parseInt(DateTimeFormat.getFormat( "M" ).format(date)) - 1;
-		day = Integer.parseInt(DateTimeFormat.getFormat( "d" ).format(date)) - 1;
-		this.hash = year * 10000 + month * 100 + day;
-	}
-
+	
 	@Override
 	public String toString() {
 		return (year<10?"0":"") + year + "-"+ (month + 1<10?"0":"") + (month + 1) + "-" + (day + 1<10?"0":"") + (day + 1);

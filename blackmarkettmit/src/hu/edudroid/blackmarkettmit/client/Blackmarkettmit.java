@@ -8,6 +8,7 @@ import hu.edudroid.blackmarkettmit.client.services.LoginServiceAsync;
 import hu.edudroid.blackmarkettmit.shared.Contact;
 import hu.edudroid.blackmarkettmit.shared.ContactComparator;
 import hu.edudroid.blackmarkettmit.shared.Date;
+import hu.edudroid.blackmarkettmit.shared.LoginBasedRewardsAndBadges;
 import hu.edudroid.blackmarkettmit.shared.TradingEvent;
 import hu.edudroid.blackmarkettmit.shared.LoginInfo;
 import hu.edudroid.blackmarkettmit.shared.PlayerState;
@@ -48,7 +49,6 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 	ContactRequestServiceAsync contactRequestsService = GWT.create(ContactRequestService.class);
 	private SuggestDialog suggestDialog;
 
-	
 	public void onModuleLoad() {
 		updateLoginPanel();
 		checkIfLoggedIn();
@@ -94,15 +94,14 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 	}
 	
 	private void processContacts(List<Contact> contacts) {
-		Date currentDate = new Date();
+		Date currentDate = GWTDayCalculator.DAY_CALCULATOR.fromDate(new java.util.Date());
 		this.contactList = contacts;
 		if (loginInfo != null) {
 			int usedEnergy = 0;
-			totalScore = 0;
 			for (Contact contact : contactList) {
 				// Check if contact creation reduced energy
 				if (contact.getViewer() == contact.getWhoRequested()) {
-					Date requestDate = new Date(contact.getRequestDate());
+					Date requestDate = GWTDayCalculator.DAY_CALCULATOR.fromDate(contact.getRequestDate());
 					if (requestDate.equals(currentDate)) {
 						usedEnergy += Contact.ENERGY_CONSUMPTION_CONTACT_REQUEST;
 					}
@@ -110,12 +109,12 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 				// Check if contact request reduced energy
 				if (contact.getViewer() == 0) {
 					if (contact.getFirstPlayerRequestsRecommandation() != null &&
-							new Date(contact.getFirstPlayerRequestsRecommandation()).equals(currentDate)) {
+							 GWTDayCalculator.DAY_CALCULATOR.fromDate(contact.getFirstPlayerRequestsRecommandation()).equals(currentDate)) {
 						usedEnergy += Contact.ENERGY_CONSUMPTION_CONTACT_REQUEST;
 					}
 				} else {
 					if (contact.getSecondPlayerRequestsRecommandation() != null &&
-							new Date(contact.getSecondPlayerRequestsRecommandation()).equals(currentDate)) {
+							 GWTDayCalculator.DAY_CALCULATOR.fromDate(contact.getSecondPlayerRequestsRecommandation()).equals(currentDate)) {
 						usedEnergy += Contact.ENERGY_CONSUMPTION_CONTACT_REQUEST;
 					}
 				}
@@ -137,9 +136,30 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 	}
 
 	private void updateUI(List<Contact> result) {
-		processContacts(result);
+		totalScore = 0;
 		// Check login history
-		System.out.println("Login history " + loginInfo.getBlackMarketUser().getLoginDates().length);
+		LoginBasedRewardsAndBadges rewards = new LoginBasedRewardsAndBadges(loginInfo.getBlackMarketUser().getLoginDates(), GWTDayCalculator.DAY_CALCULATOR);
+		int currentStreak = rewards.getCurrentStreak();
+		int longestStreak = rewards.getLongestStreak();
+		int missedDays = rewards.getMissedDays();
+		totalScore = totalScore + rewards.getTotalBonus();
+		RootPanel streakHolder = RootPanel.get("streakHolder");
+		streakHolder.clear();
+		HorizontalPanel streakPanel = new HorizontalPanel();
+		streakPanel.add(new Label("Current streak: "));
+		// Add stars
+		for (int i = 0; i < 10; i++) {
+			if (currentStreak % 10 > i) {
+				streakPanel.add(new Label("X"));
+			} else {
+				streakPanel.add(new Label("O"));
+			}
+		}
+		if (currentStreak > 10) {
+			streakPanel.add(new Label((currentStreak / 10) + " in a row."));
+		}
+		streakHolder.add(streakPanel);
+		processContacts(result);
 		RootPanel versionPanel = RootPanel.get("versionHolder");
 		versionPanel.clear();
 		versionPanel.add(new Label("Version " + VERSION));

@@ -6,57 +6,9 @@ public class TradingEvent extends Event {
 	private byte event;
 	private Outcome outcome;
 	private byte previousEvent;
+	private int initialEventEnergyConsumption;
+	private Date previousEventDate;
 	
-	private enum Outcome {
-		I_STARTED_BOTH_COOPERATE(Contact.ENERGY_CONSUMPTION_INVITE, 40),
-		I_STARTED_BOTH_DEFECT(Contact.ENERGY_CONSUMPTION_INVITE, -10),
-		I_STARTED_I_DEFECT(Contact.ENERGY_CONSUMPTION_INVITE, 100),
-		I_STARTED_HE_DEFECTS(Contact.ENERGY_CONSUMPTION_INVITE, -40),
-		I_REJECT(Contact.ENERGY_CONSUMPTION_REJECT, 0),
-		HE_REJECTS(Contact.ENERGY_CONSUMPTION_INVITE, 0),
-		I_INVITE(Contact.ENERGY_CONSUMPTION_INVITE, 0),
-		HE_INVITES(0, 0),
-		HE_STARTED_BOTH_COOPERATE(Contact.ENERGY_CONSUMPTION_ACCEPT, 40),
-		HE_STARTED_BOTH_DEFECT(Contact.ENERGY_CONSUMPTION_ACCEPT, -10),
-		HE_STARTED_I_DEFECT(Contact.ENERGY_CONSUMPTION_ACCEPT, 100),
-		HE_STARTED_HE_DEFECTS(Contact.ENERGY_CONSUMPTION_ACCEPT, -40);
-		private final int point;
-		private final int usedEnergy;
-		private Outcome(int usedEnergy, int point) {
-			this.usedEnergy = usedEnergy;
-			this.point = point;
-		}
-		public int getPoint(){
-			return point;
-		}
-		
-		public int getUsedEnergy(){
-			return usedEnergy;
-		}
-		public String generateString(String playerName){
-			switch(this) {
-			case HE_STARTED_BOTH_COOPERATE: case I_STARTED_BOTH_COOPERATE:
-				return playerName + " and you cooperated.";
-			case HE_STARTED_BOTH_DEFECT: case I_STARTED_BOTH_DEFECT:
-				return playerName + " and you both defected.";
-			case HE_STARTED_HE_DEFECTS: case I_STARTED_HE_DEFECTS:
-				return playerName + " defected on you.";
-			case HE_INVITES:
-				return playerName + " invited you to trade.";
-			case HE_REJECTS:
-				return playerName + " rejected you invitation.";
-			case HE_STARTED_I_DEFECT: case I_STARTED_I_DEFECT:
-				return " you defected on " + playerName;
-			case I_INVITE:
-				return " you invited " + playerName + " to trade.";
-			case I_REJECT:
-				return " you rejected " + playerName + "'s invitation.";
-			default:
-				return " unknown event with " + playerName;
-			}
-		}
-	}
-
 	public TradingEvent(Contact contact, int index) {
 		super(contact.getTradeHistory(), getStartPosition(index, contact.getTradeHistory().length));
 		byte[] tradeHistory = contact.getTradeHistory();
@@ -64,8 +16,21 @@ public class TradingEvent extends Event {
 		int startPosition = getStartPosition(index, contact.getTradeHistory().length);
 		if (index * Contact.TRADE_HISTORY_ENTRY_LENGTH * 2 + Contact.TRADE_HISTORY_ENTRY_LENGTH * 2 <= tradeHistory.length) {
 			previousEvent = tradeHistory[startPosition - 1];
+			int previousPlayer = tradeHistory[startPosition - 2];
+			if (previousEvent == Contact.HISTORY_INVITE_AND_COOP && previousEvent == Contact.HISTORY_INVITE_AND_DEFECT) {
+				if (previousPlayer == contact.getViewer()) {
+					initialEventEnergyConsumption = Contact.ENERGY_CONSUMPTION_INVITE;
+				}
+			} else {
+				initialEventEnergyConsumption = 0;
+			}
+			previousEventDate = new Date((tradeHistory[startPosition - Contact.TRADE_HISTORY_ENTRY_LENGTH] + Contact.START_YEAR),
+					tradeHistory[startPosition - Contact.TRADE_HISTORY_ENTRY_LENGTH + 1],
+					tradeHistory[startPosition - Contact.TRADE_HISTORY_ENTRY_LENGTH + 2]);		
+			
 		} else {
-			previousEvent = Contact.HISTORY_INVALID;
+			initialEventEnergyConsumption = 0;
+			previousEventDate = null;
 		}
 		this.player = tradeHistory[startPosition + 6];
 		this.event = tradeHistory[startPosition + 7];
@@ -125,8 +90,15 @@ public class TradingEvent extends Event {
 		return outcome.getPoint();
 	}
 
-	public int getUsedEnergy(){
-		return outcome.getUsedEnergy();
+	public int getUsedEnergy(Date currentDate){
+		int usedEnergy = 0;
+		if (previousEventDate != null && previousEventDate.equals(currentDate)) {
+			usedEnergy += initialEventEnergyConsumption;
+		}
+		if (getDate().equals(currentDate)) {
+			usedEnergy += outcome.getUsedEnergy();
+		} 
+		return usedEnergy;
 	}
 	
 	public Date getDate(){
@@ -140,7 +112,7 @@ public class TradingEvent extends Event {
 		if (contact.getViewer() != 0) {
 			playerName = contact.getFirstDisplayName();
 		}
-		return base + " " + date.toString() + " - " + outcome.generateString(playerName) + "(" + getUsedEnergy() + ", " + getPointValue() + ")";
+		return base + dateString + " - " + outcome.generateString(playerName) + "(" + outcome.getUsedEnergy() + ", " + outcome.getPoint() + ")";
 	}
 	
 	static String byteArrayToDisplayString(byte[] array) {

@@ -14,8 +14,8 @@ public class Event {
 	
 	public Event(byte[] data, int datePosition) {
 		dateString = "" + (data[datePosition] + Contact.START_YEAR);
-		dateString = dateString + "-" + (data[datePosition + 1]<10?"0":"") + data[datePosition + 1];
-		dateString = dateString + "-" + (data[datePosition + 2]<10?"0":"") + data[datePosition + 2];
+		dateString = dateString + "-" + (data[datePosition + 1]<10?"0":"") + (data[datePosition + 1] + 1);
+		dateString = dateString + "-" + (data[datePosition + 2]<10?"0":"") + (data[datePosition + 2] + 1);
 		dateString = dateString + " " + (data[datePosition + 3]<10?"0":"") + data[datePosition + 3];
 		dateString = dateString + ":" + (data[datePosition + 4]<10?"0":"") + data[datePosition + 4];
 		dateString = dateString + ":" + (data[datePosition + 5]<10?"0":"") + data[datePosition + 5];

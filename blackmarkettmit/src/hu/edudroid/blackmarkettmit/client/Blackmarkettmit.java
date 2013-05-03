@@ -39,12 +39,14 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 		ClickHandler, TradeActionHandler, SuggestListener {
 	private GetContactDialog getContactDialog;
-	private static final String VERSION = "14 / Fixed energy issue";
+	private static final String VERSION = "17 / Fixed streak bonus notifications";
 	private Button addContactButton;
 	private List<Contact> contactList;
 	private LoginInfo loginInfo;
 	private int remainingEnergy = 0;
 	private int totalScore = 0;
+	private int tradeHistoryLength = 0;
+	private boolean daysFirstEvent = true;
 
 	ContactRequestServiceAsync contactRequestsService = GWT.create(ContactRequestService.class);
 	private SuggestDialog suggestDialog;
@@ -91,42 +93,7 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 				updateUI(result);
 			}
 		});
-	}
-	
-	private void processContacts(List<Contact> contacts) {
-		Date currentDate = GWTDayCalculator.DAY_CALCULATOR.fromDate(new java.util.Date());
-		this.contactList = contacts;
-		if (loginInfo != null) {
-			int usedEnergy = 0;
-			for (Contact contact : contactList) {
-				// Check if contact creation reduced energy
-				if (contact.getViewer() == contact.getWhoRequested()) {
-					Date requestDate = GWTDayCalculator.DAY_CALCULATOR.fromDate(contact.getRequestDate());
-					if (requestDate.equals(currentDate)) {
-						usedEnergy += Contact.ENERGY_CONSUMPTION_CONTACT_REQUEST;
-					}
-				}
-				// Check if contact request reduced energy
-				if (contact.getViewer() == 0) {
-					if (contact.getFirstPlayerRequestsRecommandation() != null &&
-							 GWTDayCalculator.DAY_CALCULATOR.fromDate(contact.getFirstPlayerRequestsRecommandation()).equals(currentDate)) {
-						usedEnergy += Contact.ENERGY_CONSUMPTION_CONTACT_REQUEST;
-					}
-				} else {
-					if (contact.getSecondPlayerRequestsRecommandation() != null &&
-							 GWTDayCalculator.DAY_CALCULATOR.fromDate(contact.getSecondPlayerRequestsRecommandation()).equals(currentDate)) {
-						usedEnergy += Contact.ENERGY_CONSUMPTION_CONTACT_REQUEST;
-					}
-				}
-				List<TradingEvent> events = contact.getEvents();
-				for (TradingEvent event : events) {
-					totalScore += event.getPointValue();
-					usedEnergy += event.getUsedEnergy(currentDate);
-				}
-			}
-			remainingEnergy = loginInfo.getBlackMarketUser().getMaxEnergy() - usedEnergy;
-		}
-	}
+	}	
 	
 	private void init() {
 		updateLoginPanel();
@@ -136,12 +103,14 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 	private void updateUI(List<Contact> result) {
 		totalScore = 0;
 		// Check login history
-		LoginBasedRewardsAndBadges rewards = new LoginBasedRewardsAndBadges(loginInfo.getBlackMarketUser().getLoginDates(), GWTDayCalculator.DAY_CALCULATOR);
+		LoginBasedRewardsAndBadges rewards = new LoginBasedRewardsAndBadges(loginInfo.getBlackMarketUser().getLoginDates(), GWTDayCalculator.DAY_CALCULATOR, daysFirstEvent);
 		int currentStreak = rewards.getCurrentStreak();
-		int longestStreak = rewards.getLongestStreak();
-		int missedDays = rewards.getMissedDays();
 		totalScore = totalScore + rewards.getTotalBonus();
 		RootPanel streakHolder = RootPanel.get("streakHolder");
+		String message = rewards.getPopupMessage();
+		if (message != null) {
+			new TutorialPopup(rewards.getPopupTitle(), message, streakHolder);
+		}
 		streakHolder.clear();
 		HorizontalPanel streakPanel = new HorizontalPanel();
 		streakPanel.add(new Label("Current streak: "));
@@ -166,6 +135,44 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 		updateActionPanel();
 		updateRequestsPanel();
 		updateEventsPanel();
+		daysFirstEvent = false;
+	}
+
+	private void processContacts(List<Contact> contacts) {
+		Date currentDate = GWTDayCalculator.DAY_CALCULATOR.fromDate(new java.util.Date());
+		this.contactList = contacts;
+		tradeHistoryLength = 0;
+		if (loginInfo != null) {
+			int usedEnergy = 0;
+			for (Contact contact : contactList) {
+				// Check if contact creation reduced energy
+				if (contact.getViewer() == contact.getWhoRequested()) {
+					Date requestDate = GWTDayCalculator.DAY_CALCULATOR.fromDate(contact.getRequestDate());
+					if (requestDate.equals(currentDate)) {
+						usedEnergy += Contact.ENERGY_CONSUMPTION_CONTACT_REQUEST;
+					}
+				}
+				// Check if contact request reduced energy
+				if (contact.getViewer() == 0) {
+					if (contact.getFirstPlayerRequestsRecommandation() != null &&
+							 GWTDayCalculator.DAY_CALCULATOR.fromDate(contact.getFirstPlayerRequestsRecommandation()).equals(currentDate)) {
+						usedEnergy += Contact.ENERGY_CONSUMPTION_CONTACT_REQUEST;
+					}
+				} else {
+					if (contact.getSecondPlayerRequestsRecommandation() != null &&
+							 GWTDayCalculator.DAY_CALCULATOR.fromDate(contact.getSecondPlayerRequestsRecommandation()).equals(currentDate)) {
+						usedEnergy += Contact.ENERGY_CONSUMPTION_CONTACT_REQUEST;
+					}
+				}
+				List<TradingEvent> events = contact.getEvents();
+				for (TradingEvent event : events) {
+					tradeHistoryLength++;
+					totalScore += event.getPointValue();
+					usedEnergy += event.getUsedEnergy(currentDate);
+				}
+			}
+			remainingEnergy = loginInfo.getBlackMarketUser().getMaxEnergy() - usedEnergy;
+		}
 	}
 
 	private void updateScoreAndEnergy(){
@@ -323,7 +330,7 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 	}
 
 	@Override
-	public void getRandom() {
+	public void getRandom() {		
 		final ProgressDialog dialog = new ProgressDialog("Finding a random contact", "This might take a few seconds. Kick back and relax!");		
 		contactRequestsService.newRandomContact(new AsyncCallback<Tupple<Contact,List<Contact>>>() {
 			@Override
@@ -345,7 +352,12 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 					} else {
 						contactName = result.getFirst().getFirstDisplayName();
 					}
-					new MessageDialog("Meet " + contactName + "!", "This is the beginning of a beautiful friendship..");
+					// Check if this was the first contact
+					if (contactList.size() == 0) {
+						new TutorialPopup("Your first contact", "Congrats, you just made your first contact. It's time to get trading. Trade the original, trade the fake, it's your choice. There are no consequences, it's only up to you two.", null);
+					} else {
+						new MessageDialog("Meet " + contactName + "!", "This is the beginning of a beautiful friendship...");
+					}
 				}
 				updateUI(result.getSecond());
 			}
@@ -411,7 +423,7 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 				if (result.getSecond() != null) {
 					contactList = result.getSecond();
 				} else {
-					new ErrorDialog("No new contacts", "We didn't receive any new contacts.");
+					new ErrorDialog("No contact update received", "Try reloading the page!");
 				}
 				dialog.hide();
 				if (result.getFirst() == ContactRequestService.PLAY_RESULT_COOPERATE) {

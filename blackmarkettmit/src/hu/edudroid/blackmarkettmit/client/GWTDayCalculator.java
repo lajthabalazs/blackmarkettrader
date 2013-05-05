@@ -22,7 +22,10 @@ public class GWTDayCalculator implements DayCaclulator {
 	public hu.edudroid.blackmarkettmit.shared.Date fromDate(Date date) {
 		return new hu.edudroid.blackmarkettmit.shared.Date(Integer.parseInt(DateTimeFormat.getFormat( "y" ).format(date)),
 				Integer.parseInt(DateTimeFormat.getFormat( "M" ).format(date)) - 1,
-				Integer.parseInt(DateTimeFormat.getFormat( "d" ).format(date)) - 1);
+				Integer.parseInt(DateTimeFormat.getFormat( "d" ).format(date)) - 1,
+				Integer.parseInt(DateTimeFormat.getFormat( "H" ).format(date)),
+				Integer.parseInt(DateTimeFormat.getFormat( "m" ).format(date)),
+				Integer.parseInt(DateTimeFormat.getFormat( "s" ).format(date)));
 	}
 
 	@Override

@@ -26,7 +26,12 @@ public class JavaDayCalculator implements DayCaclulator {
 	public hu.edudroid.blackmarkettmit.shared.Date fromDate(Date date) {
 		start.setTime(date);
 		return new hu.edudroid.blackmarkettmit.shared.Date(start.get(Calendar.YEAR),
-				start.get(Calendar.MONTH), start.get(Calendar.DAY_OF_MONTH) - 1);
+				start.get(Calendar.MONTH),
+				start.get(Calendar.DAY_OF_MONTH) - 1,
+				start.get(Calendar.HOUR_OF_DAY),
+				start.get(Calendar.MINUTE),
+				start.get(Calendar.SECOND)
+				);
 	}
 	@Override
 	public Date toDate(hu.edudroid.blackmarkettmit.shared.Date date) {

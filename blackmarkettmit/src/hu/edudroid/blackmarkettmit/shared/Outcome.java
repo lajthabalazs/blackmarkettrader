@@ -1,30 +1,27 @@
 package hu.edudroid.blackmarkettmit.shared;
 
 enum Outcome {
-	I_STARTED_BOTH_COOPERATE(0, 40),
-	I_STARTED_BOTH_DEFECT(0, -10),
-	I_STARTED_I_DEFECT(0, 100),
-	I_STARTED_HE_DEFECTS(0, -40),
-	I_REJECT(Contact.ENERGY_CONSUMPTION_REJECT, 0),
-	HE_REJECTS(0, 0),
-	I_INVITE(Contact.ENERGY_CONSUMPTION_INVITE, 0),
-	HE_INVITES(0, 0),
-	HE_STARTED_BOTH_COOPERATE(Contact.ENERGY_CONSUMPTION_ACCEPT, 40),
-	HE_STARTED_BOTH_DEFECT(Contact.ENERGY_CONSUMPTION_ACCEPT, -10),
-	HE_STARTED_I_DEFECT(Contact.ENERGY_CONSUMPTION_ACCEPT, 100),
-	HE_STARTED_HE_DEFECTS(Contact.ENERGY_CONSUMPTION_ACCEPT, -40);
-	private final int point;
-	private final int usedEnergy;
-	private Outcome(int usedEnergy, int point) {
-		this.usedEnergy = usedEnergy;
-		this.point = point;
-	}
-	public int getPoint(){
-		return point;
-	}
+	I_STARTED_BOTH_COOPERATE(Contact.POINT_VALUE_BOTH_COOPERATE, Contact.ENERGY_CONSUMPTION_INVITE, 0),
+	I_STARTED_BOTH_DEFECT(Contact.POINT_VALUE_BOTH_DEFECT, Contact.ENERGY_CONSUMPTION_INVITE, 0),
+	I_STARTED_I_DEFECT(Contact.POINT_VALUE_I_DEFECT, Contact.ENERGY_CONSUMPTION_INVITE, 0),
+	I_STARTED_HE_DEFECTS(Contact.POINT_VALUE_HE_DEFECTS, Contact.ENERGY_CONSUMPTION_INVITE, 0),
+	I_REJECT(0, 0, 0),
+	HE_REJECTS(0, Contact.ENERGY_CONSUMPTION_INVITE, 0),
+	I_INVITE(0, Contact.ENERGY_CONSUMPTION_INVITE, 0),
+	HE_INVITES(0, Contact.ENERGY_CONSUMPTION_INVITE, 0),
+	HE_STARTED_BOTH_COOPERATE(Contact.POINT_VALUE_BOTH_COOPERATE, 0, Contact.ENERGY_CONSUMPTION_ACCEPT),
+	HE_STARTED_BOTH_DEFECT(Contact.POINT_VALUE_BOTH_DEFECT, 0, Contact.ENERGY_CONSUMPTION_ACCEPT),
+	HE_STARTED_I_DEFECT(Contact.POINT_VALUE_I_DEFECT, 0, Contact.ENERGY_CONSUMPTION_ACCEPT),
+	HE_STARTED_HE_DEFECTS(Contact.POINT_VALUE_HE_DEFECTS, 0, Contact.ENERGY_CONSUMPTION_ACCEPT),
+	INVALID(0, 0, 0);
+	private final int pointValue;
+	private final int firstEventConsumption;
+	private final int secondEventConsumption;
 	
-	public int getUsedEnergy(){
-		return usedEnergy;
+	private Outcome(int pointValue, int firstEventConsumption, int secondEventConsumption){
+		this.pointValue = pointValue;
+		this.firstEventConsumption = firstEventConsumption;
+		this.secondEventConsumption = secondEventConsumption;
 	}
 	
 	public String generateString(String playerName){
@@ -48,5 +45,20 @@ enum Outcome {
 		default:
 			return " unknown event with " + playerName;
 		}
+	}
+
+	public int getPointValue() {
+		return pointValue;
+	}
+
+	public int getUsedEnergy(Date currentDate, Date firstDate, Date responseDate) {
+		int consumption = 0;
+		if (currentDate.sameDay(firstDate)) {
+			consumption += firstEventConsumption; 
+		}
+		if (currentDate.sameDay(responseDate)) {
+			consumption += secondEventConsumption; 
+		}
+		return consumption;
 	}
 }

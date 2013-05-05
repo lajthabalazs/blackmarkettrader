@@ -27,6 +27,11 @@ public class Contact implements Serializable {
 	public static final int ENERGY_CONSUMPTION_INVITE = 10;
 	public static final int ENERGY_CONSUMPTION_ACCEPT = 8;
 	public static final int ENERGY_CONSUMPTION_REJECT = 0;
+	
+	public static final int POINT_VALUE_BOTH_COOPERATE = 40;
+	public static final int POINT_VALUE_BOTH_DEFECT = -10;
+	public static final int POINT_VALUE_HE_DEFECTS = -40;
+	public static final int POINT_VALUE_I_DEFECT = 100;
 
 	private String entityKey;
 
@@ -208,6 +213,7 @@ public class Contact implements Serializable {
 	}
 
 	public List<TradingEvent> getEvents() {
+		String contactName = NameUtils.getName((viewer == 0)?secondNameCode:firstNameCode);
 		ArrayList<TradingEvent> events = new ArrayList<TradingEvent>();
 		int eventCount = tradeHistory.length
 				/ (Contact.TRADE_HISTORY_ENTRY_LENGTH * 2);
@@ -216,7 +222,7 @@ public class Contact implements Serializable {
 			eventCount++;
 		}
 		for (int i = 0; i < eventCount; i++) {
-			TradingEvent event = new TradingEvent(this, i);
+			TradingEvent event = new TradingEvent(getViewer(), this.getTradeHistory(), i, contactName);
 			events.add(event);
 		}
 		return events;

@@ -18,10 +18,9 @@ public class LoginBasedRewardsAndBadges {
 	private int currentStreak = 0;
 	private int missedDays = 0;
 	private int totalBonus = 0;
-	private String popupMessage = null;
 	
 	
-	public LoginBasedRewardsAndBadges (byte[] loginHistory, DayCaclulator dayCalculator, boolean daysFirstEvent) {
+	public LoginBasedRewardsAndBadges (byte[] loginHistory, DayCaclulator dayCalculator) {
 		int eventCount = loginHistory.length / Contact.LOGIN_HISTORY_ENTRY_LENGTH;
 		Date lastDate = null;
 		Date streakStart = null;
@@ -34,10 +33,8 @@ public class LoginBasedRewardsAndBadges {
 			if (lastDate != null) {
 				int dateDiff = dayCalculator.getDaysBetween(lastDate, eventDate);
 				if (dateDiff == 0) {
-					daysFirstEvent = false;
 					missedDays = 0;
 				} else if (dateDiff == 1) {
-					daysFirstEvent = true;
 				} else if (dateDiff > 1) {
 					int streakLength = dayCalculator.getDaysBetween(streakStart, eventDate);
 					// End of a streak, calculate bonus
@@ -54,14 +51,10 @@ public class LoginBasedRewardsAndBadges {
 		if (eventDate != null) {
 			currentStreak = dayCalculator.getDaysBetween(streakStart, eventDate);
 			totalBonus += streakValue(currentStreak);
-			if (daysFirstEvent) {
-				// Set a pop up message
-				popupMessage = "Wow, you're a hard worker! " + (currentStreak + 1 ) + " days in a raw, the boss is pleased. He rewarded you with $" + streakCurrentDaysValue(currentStreak);
-			}
 		}
 	}
 	
-	private int streakValue(int streakLength){
+	public static int streakValue(int streakLength){
 		if (streakLength <= 0) {
 			return 0;
 		}
@@ -77,7 +70,7 @@ public class LoginBasedRewardsAndBadges {
 		return bonus;		
 	}
 
-	private int streakCurrentDaysValue(int streakLength){
+	public static int streakCurrentDaysValue(int streakLength){
 		if (streakLength <= 0) {
 			return 0;
 		}
@@ -103,18 +96,6 @@ public class LoginBasedRewardsAndBadges {
 
 	public int getTotalBonus() {
 		return totalBonus;
-	}
-
-	public String getPopupMessage() {
-		return popupMessage;
-	}
-
-	public String getPopupTitle() {
-		if (getPopupMessage() != null) {
-			return "Congratulations";
-		} else {
-			return null;
-		}
 	}
 }
 

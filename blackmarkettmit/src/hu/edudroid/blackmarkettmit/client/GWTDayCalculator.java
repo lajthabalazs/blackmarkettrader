@@ -30,7 +30,8 @@ public class GWTDayCalculator implements DayCaclulator {
 
 	@Override
 	public Date toDate(hu.edudroid.blackmarkettmit.shared.Date date) {
-		return DateTimeFormat.getFormat("yyyy-MM-dd").parse(date.year + "-" + (date.month + 1) + "-" + (date.day + 1));
+		return DateTimeFormat.getFormat("yyyy-MM-dd HH:mm:ss").
+				parse(date.toString());
 	}
 
 	@Override

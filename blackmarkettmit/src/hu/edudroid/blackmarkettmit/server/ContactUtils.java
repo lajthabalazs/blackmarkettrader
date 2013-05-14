@@ -170,7 +170,7 @@ public class ContactUtils {
 		newTradeHistory[position] = (byte) (calendar.get(Calendar.YEAR) - Contact.START_YEAR);
 		newTradeHistory[position + 1] = (byte) calendar.get(Calendar.MONTH);
 		newTradeHistory[position + 2] = (byte) (calendar.get(Calendar.DAY_OF_MONTH) - 1);
-		newTradeHistory[position + 3] = (byte) calendar.get(Calendar.HOUR);
+		newTradeHistory[position + 3] = (byte) calendar.get(Calendar.HOUR_OF_DAY);
 		newTradeHistory[position + 4] = (byte) calendar.get(Calendar.MINUTE);
 		newTradeHistory[position + 5] = (byte) calendar.get(Calendar.SECOND);
 		newTradeHistory[position + 6] = (byte) player;

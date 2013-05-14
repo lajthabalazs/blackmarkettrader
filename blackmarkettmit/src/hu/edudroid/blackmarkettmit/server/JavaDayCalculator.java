@@ -38,6 +38,9 @@ public class JavaDayCalculator implements DayCaclulator {
 		start.set(Calendar.YEAR, date.year);
 		start.set(Calendar.MONTH, date.month);
 		start.set(Calendar.DAY_OF_MONTH, date.day + 1);
+		start.set(Calendar.HOUR_OF_DAY, date.hour);
+		start.set(Calendar.MINUTE, date.minute);
+		start.set(Calendar.SECOND, date.sec);
 		return start.getTime();
 	}
 	@Override

@@ -36,7 +36,7 @@ public class Date implements Comparable<Date>{
 	@Override
 	public String toString() {
 		return (year<10?"0":"") + year + "-"+ (month + 1<10?"0":"") + (month + 1) + "-" + (day + 1<10?"0":"") + (day + 1) + " " + 
-				(hour<10?"0":"") + hour + ":"+ (minute + 1<10?"0":"") + (minute + 1) + ":" + (sec + 1<10?"0":"") + (sec + 1);
+				(hour<10?"0":"") + hour + ":"+ (minute + 1<10?"0":"") + minute + ":" + (sec + 1<10?"0":"") + sec;
 	}
 	
 	@Override

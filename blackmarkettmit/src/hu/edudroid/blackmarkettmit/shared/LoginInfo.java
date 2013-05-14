@@ -12,6 +12,7 @@ public class LoginInfo implements Serializable {
 	private String nickname;
 	private BlackMarketUser blackMarketUser;
 	private String logoutUrl;
+	private long serverTime;
 
 	public boolean isLoggedIn() {
 		return loggedIn;
@@ -67,5 +68,13 @@ public class LoginInfo implements Serializable {
 
 	public void setLogoutUrl(String logoutUrl) {
 		this.logoutUrl = logoutUrl;
+	}
+
+	public long getServerTime() {
+		return serverTime;
+	}
+
+	public void setServerTime(long serverTime) {
+		this.serverTime = serverTime;
 	}
 }

@@ -129,6 +129,9 @@ public class BlackMarketUserUtils {
 		}
 		entity.setProperty("externalId", blackMarketUser.getExternalId());
 		entity.setProperty("random", blackMarketUser.getRandom());
+		entity.setProperty("emailAddress", blackMarketUser.getEmailAddress());
+		entity.setProperty("gender", blackMarketUser.getGender());
+		entity.setProperty("birthday", blackMarketUser.getBirthday());
 		entity.setProperty("loginDates", new Blob(blackMarketUser.getLoginDates()));
 		System.out.println("Saved login dates " + blackMarketUser.getLoginDates().length);
 		datastore.put(entity);
@@ -138,6 +141,15 @@ public class BlackMarketUserUtils {
 		BlackMarketUser user = new BlackMarketUser();
 		user.setExternalId((String)result.getProperty("externalId"));
 		user.setRandom(((Double)result.getProperty("random")).floatValue());
+		try {
+			user.setEmailAddress((String)result.getProperty("emailAddress"));
+		} catch (Exception e) {}
+		try {
+			user.setGender((String)result.getProperty("gender"));
+		} catch (Exception e) {}
+		try {
+			user.setBirthday((String)result.getProperty("birthday"));
+		} catch (Exception e) {}
 		user.setEntityKey(KeyFactory.keyToString(result.getKey()));
 		try {
 			user.setLoginDates(((Blob)result.getProperty("loginDates")).getBytes());

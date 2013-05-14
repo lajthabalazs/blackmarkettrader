@@ -6,9 +6,17 @@ public class BlackMarketUser implements Serializable{
 
 	private static final long serialVersionUID = -8822523082905084208L;
 	private static final int MAX_ENERGY = 90;
+	
+	public static final String GENDER_MALE = "m";
+	public static final String GENDER_FEMALE = "f";
+	public static final String GENDER_UNKNOWN = "u";
+	
 	private String entityKey;
 	private String externalId;
 	private String userName;
+	private String emailAddress;
+	private String gender;
+	private String birthday;
 	private float random;
 	private byte[] loginDates;
 	
@@ -36,6 +44,30 @@ public class BlackMarketUser implements Serializable{
 	public void setUserName(String userName) {
 		this.userName = userName;
 	}
+	public String getEmailAddress() {
+		return emailAddress;
+	}
+
+	public void setEmailAddress(String emailAddress) {
+		this.emailAddress = emailAddress;
+	}
+
+	public String getGender() {
+		return gender;
+	}
+
+	public void setGender(String gender) {
+		this.gender = gender;
+	}
+
+	public String getBirthday() {
+		return birthday;
+	}
+
+	public void setBirthday(String birthday) {
+		this.birthday = birthday;
+	}
+
 	public float getRandom() {
 		return random;
 	}

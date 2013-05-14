@@ -18,6 +18,12 @@ enum Outcome {
 	private final int firstEventConsumption;
 	private final int secondEventConsumption;
 	
+	/**
+	 * Energy consumption and point value are relative to the viewer
+	 * @param pointValue The point value brought to the player by this trade
+	 * @param firstEventConsumption The energy consumed by the player for the first event of the trade.
+	 * @param secondEventConsumption The energy consumed by the player for the second event of the trade.
+	 */
 	private Outcome(int pointValue, int firstEventConsumption, int secondEventConsumption){
 		this.pointValue = pointValue;
 		this.firstEventConsumption = firstEventConsumption;

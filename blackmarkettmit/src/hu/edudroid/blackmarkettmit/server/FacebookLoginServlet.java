@@ -31,6 +31,17 @@ public class FacebookLoginServlet extends HttpServlet {
 			HttpSession session = req.getSession();
 			session.setAttribute(FacebookServlet.USER_ID, fbUser.getId());
 			session.setAttribute(FacebookServlet.USER_NAME, fbUser.getName());
+			session.setAttribute("emailAddress", fbUser.getEmail());
+			String gender = fbUser.getGender();
+			char genderChar = 'u';
+			if (gender != null) {
+				if (gender.equals("male")) {
+					genderChar = 'm';
+				} else if (gender.equals("female")) {
+					genderChar = 'f';
+				}
+			}
+			session.setAttribute("gender", genderChar);
 			System.out.println("Code " + code);
 			resp.sendRedirect("/");
 		} catch (FacebookException e) {

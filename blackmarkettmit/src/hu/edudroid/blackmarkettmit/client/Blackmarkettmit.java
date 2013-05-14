@@ -14,12 +14,15 @@ import hu.edudroid.blackmarkettmit.shared.Tupple;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.i18n.client.DateTimeFormat;
+import com.google.gwt.i18n.client.TimeZone;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Anchor;
@@ -41,6 +44,8 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 	private Button addContactButton;
 	private LoginInfo loginInfo;
 	private Model model = new Model(GWTDayCalculator.DAY_CALCULATOR);
+	private long serverTimeAtLastLogin = 0;
+	private long clientTimeAtLastLogin = 0;
 
 	ContactRequestServiceAsync contactRequestsService = GWT.create(ContactRequestService.class);
 	private SuggestDialog suggestDialog;
@@ -64,6 +69,9 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 			public void onSuccess(LoginInfo result) {
 				dialog.hide();
 				loginInfo = result;
+				serverTimeAtLastLogin = result.getServerTime();
+				Date date = new Date();
+				clientTimeAtLastLogin = date.getTime();
 				model.setLoginInfo(loginInfo);
 				if (loginInfo.isLoggedIn()) {
 					init();
@@ -96,6 +104,14 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 	}
 
 	private void updateUI(List<Contact> result) {
+		RootPanel debugHolder = RootPanel.get("debugHolder");
+		Date date = new Date();
+		DateTimeFormat dtf = DateTimeFormat.getFormat("yyyy-MM-dd HH:mm:ss");
+		debugHolder.clear();
+		debugHolder.add(new Label("Client time " + dtf.format(date)));
+		long timeDiff = serverTimeAtLastLogin - clientTimeAtLastLogin;
+		Date serverDate = new Date(date.getTime() + timeDiff);
+		debugHolder.add(new Label("Server time " + dtf.format(serverDate)));
 		// Check login history
 		int currentStreak = model.getCurrentStreak();
 		RootPanel streakHolder = RootPanel.get("streakHolder");

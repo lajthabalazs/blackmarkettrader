@@ -27,12 +27,17 @@ public class LoginServiceImpl extends RemoteServiceServlet implements
 		String userName = (String) session.getAttribute(FacebookServlet.USER_NAME);
 		UserManager.getCurrentUser(session);
 		LoginInfo loginInfo = new LoginInfo();
+		String gender = BlackMarketUser.GENDER_UNKNOWN;
+		String birthday = null;
+		String emailAddress = "";
+		
 		if ((user != null)||(userId != null)) {
 			if (user != null) {
 				System.out.println("Found google userid");
 				session.removeAttribute(FacebookServlet.USER_ID);
 				session.removeAttribute(FacebookServlet.USER_NAME);
 				userId = user.getUserId();
+				emailAddress = user.getEmail();
 				loginInfo.setLoggedIn(true);
 				loginInfo.setExternalId(user.getUserId());
 				loginInfo.setNickname(user.getNickname());
@@ -44,6 +49,9 @@ public class LoginServiceImpl extends RemoteServiceServlet implements
 				loginInfo.setExternalId(userId);
 				loginInfo.setNickname(userName);
 				loginInfo.setLogoutUrl("/FacebookLogoutServlet");
+				gender = (String) session.getAttribute("gender");
+				birthday = (String) session.getAttribute("birthday");
+				emailAddress = (String) session.getAttribute("emailAddress");
 			}
 			// Check if user is part of the system			
 			BlackMarketUser blackMarketUser = BlackMarketUserUtils.getUserByExternalId(userId);
@@ -53,6 +61,9 @@ public class LoginServiceImpl extends RemoteServiceServlet implements
 				blackMarketUser.setExternalId(loginInfo.getExternalId());
 				blackMarketUser.setUserName(loginInfo.getNickname());
 				blackMarketUser.setRandom((float)Math.random());
+				blackMarketUser.setEmailAddress(emailAddress);
+				blackMarketUser.setGender(gender);
+				blackMarketUser.setBirthday(birthday);
 			} else {
 				System.out.println("User in database");				
 			}
@@ -66,6 +77,7 @@ public class LoginServiceImpl extends RemoteServiceServlet implements
 			loginInfo.setLoginWithFacebookUrl("/FacebookServlet");
 			loginInfo.setLoginWithGoogleUrl(userService.createLoginURL(requestUri));
 		}
+		loginInfo.setServerTime(System.currentTimeMillis());
 		return loginInfo;
 	}
 }

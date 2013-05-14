@@ -35,7 +35,8 @@ public class Date implements Comparable<Date>{
 	
 	@Override
 	public String toString() {
-		return (year<10?"0":"") + year + "-"+ (month + 1<10?"0":"") + (month + 1) + "-" + (day + 1<10?"0":"") + (day + 1);
+		return (year<10?"0":"") + year + "-"+ (month + 1<10?"0":"") + (month + 1) + "-" + (day + 1<10?"0":"") + (day + 1) + " " + 
+				(hour<10?"0":"") + hour + ":"+ (minute + 1<10?"0":"") + (minute + 1) + ":" + (sec + 1<10?"0":"") + (sec + 1);
 	}
 	
 	@Override
@@ -62,10 +63,25 @@ public class Date implements Comparable<Date>{
 		if (other == null) {
 			return -1;
 		}
-		return toString().compareTo(other.toString());
+		if (this.year > other.year) return 1;
+		if (this.year < other.year) return -1;
+		if (this.month > other.month) return 1;
+		if (this.month < other.month) return -1;
+		if (this.day > other.day)  return 1;
+		if (this.day < other.day)  return -1;
+		if (this.hour > other.hour)  return 1;
+		if (this.hour < other.hour)  return -1;
+		if (this.minute > other.minute)  return 1;
+		if (this.minute < other.minute)  return -1;
+		if (this.sec > other.sec)  return 1;
+		if (this.sec < other.sec)  return -1;
+		return 0;
 	}
 
 	public boolean sameDay(Date otherDate) {
+		if (otherDate == null) {
+			return false;
+		}
 		return (year == otherDate.year) && (month == otherDate.month) && (day == otherDate.day);
 	}
 }

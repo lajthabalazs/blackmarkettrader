@@ -121,6 +121,6 @@ public class TradingEvent extends Event {
 	public String toString() {
 		String base = "";
 		String playerName = otherPlayersName;
-		return base + date.toString() + " - " + outcome.generateString(playerName) + ((getPointValue()==0)?"":((getPointValue()>0)?"+$" + getPointValue():"-$" + (-1 * getPointValue())));
+		return base + date.toString() + " - " + outcome.generateString(playerName) + ((getPointValue()==0)?"":((getPointValue()>0)?" (+$" + getPointValue():" (-$" + (-1 * getPointValue())) + ")");
 	}
 }

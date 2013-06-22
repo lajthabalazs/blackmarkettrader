@@ -19,14 +19,14 @@ public class Model {
 	
 	public void setLoginInfo(LoginInfo loginInfo) {
 		this.loginInfo = loginInfo;
-	}
-
-	public void processContacts(List<Contact> contacts) {
-		totalScore = 0;
 		if (loginInfo == null){
 			return;
 		}
 		rewards = new LoginBasedRewardsAndBadges(loginInfo.getBlackMarketUser().getLoginDates(), dayCalculator);		
+	}
+
+	public void setContacts(List<Contact> contacts) {
+		totalScore = 0;
 		totalScore = totalScore + rewards.getTotalBonus();
 		Date currentDate = GWTDayCalculator.DAY_CALCULATOR.fromDate(new java.util.Date());
 		this.contactList = contacts;

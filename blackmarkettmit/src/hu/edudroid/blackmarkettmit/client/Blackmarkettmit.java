@@ -22,7 +22,6 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.i18n.client.DateTimeFormat;
-import com.google.gwt.i18n.client.TimeZone;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Anchor;
@@ -52,10 +51,6 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 
 	public void onModuleLoad() {
 		updateLoginPanel();
-		checkIfLoggedIn();
-	}
-	
-	public void checkIfLoggedIn(){
 		final ProgressDialog dialog = new ProgressDialog("Authenticating", "This might take a few seconds. Kick back and relax!");
 		// Check login status using login service.
 		LoginServiceAsync loginService = GWT.create(LoginService.class);
@@ -75,10 +70,16 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 				model.setLoginInfo(loginInfo);
 				if (loginInfo.isLoggedIn()) {
 					init();
+				} else {
+					updateLoginPanel();					
 				}
-				updateLoginPanel();
 			}
 		});
+	}
+		
+	private void init() {
+		updateLoginPanel();
+		getData();
 	}
 
 	private void getData() {
@@ -98,11 +99,6 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 		});
 	}	
 	
-	private void init() {
-		updateLoginPanel();
-		getData();
-	}
-
 	private void updateUI(List<Contact> result) {
 		RootPanel debugHolder = RootPanel.get("debugHolder");
 		Date date = new Date();
@@ -115,10 +111,6 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 		// Check login history
 		int currentStreak = model.getCurrentStreak();
 		RootPanel streakHolder = RootPanel.get("streakHolder");
-		String message = model.getCurrentStreakMessage();
-		if (message != null) {
-			new TutorialPopup("You're doing great!", message, streakHolder);
-		}
 		streakHolder.clear();
 		HorizontalPanel streakPanel = new HorizontalPanel();
 		streakPanel.add(new Label("Current streak: "));
@@ -133,8 +125,8 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 		if (currentStreak > 10) {
 			streakPanel.add(new Label((currentStreak / 10) + " in a row."));
 		}
-		streakHolder.add(streakPanel);
-		model.processContacts(result);
+		streakHolder.add(streakPanel);		
+		model.setContacts(result);
 		RootPanel versionPanel = RootPanel.get("versionHolder");
 		versionPanel.clear();
 		versionPanel.add(new Label("Version " + VERSION));
@@ -143,6 +135,12 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 		updateActionPanel();
 		updateRequestsPanel();
 		updateEventsPanel();
+		// TODO notifications
+		// TODO tutorial
+		String message = model.getCurrentStreakMessage();
+		if (message != null) {
+			new TutorialPopup("You're doing great!", message, streakHolder);
+		}
 	}
 
 	private void updateScoreAndEnergy(){
@@ -195,8 +193,9 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 		ArrayList<TradingEvent> allEvents = model.getAllTradingEvents();
 		VerticalPanel eventsHolder = new VerticalPanel();
 		Collections.sort(allEvents, TradingEvent.EVENT_COMPARATOR);
+		long timeDiff = clientTimeAtLastLogin - serverTimeAtLastLogin;
 		for (TradingEvent event : allEvents) {
-			eventsHolder.add(new Label(event.toString()));
+			eventsHolder.add(new Label(event.getString(timeDiff, GWTDayCalculator.DAY_CALCULATOR)));
 		}
 		ScrollPanel eventsScroll = new ScrollPanel(eventsHolder);
 		eventsScroll.setHeight("400px");
@@ -296,7 +295,7 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 	}
 
 	@Override
-	public void getRandom() {		
+	public void getRandomContact() {		
 		final ProgressDialog dialog = new ProgressDialog("Finding a random contact", "This might take a few seconds. Kick back and relax!");		
 		contactRequestsService.newRandomContact(new AsyncCallback<Tupple<Contact,List<Contact>>>() {
 			@Override
@@ -388,7 +387,7 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 			@Override
 			public void onSuccess(Tupple<Integer,List<Contact>> result) {
 				if (result.getSecond() != null) {
-					model.processContacts(result.getSecond());
+					model.setContacts(result.getSecond());
 				} else {
 					new ErrorDialog("No contact update received", "Try reloading the page!");
 				}

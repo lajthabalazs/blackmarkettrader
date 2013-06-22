@@ -69,14 +69,14 @@ public class GetContactDialog extends DialogBox implements ClickHandler {
 	@Override
 	public void onClick(ClickEvent event) {
 		if (event.getSource().equals(randomButton)) {
-			listener.getRandom();
+			listener.getRandomContact();
 		} else {
 			this.hide();
 		}
 	}
 
 	public interface GetContactDialogListener {
-		void getRandom();
+		void getRandomContact();
 		void requestContactFromPlayer(Contact player);
 	}
 }

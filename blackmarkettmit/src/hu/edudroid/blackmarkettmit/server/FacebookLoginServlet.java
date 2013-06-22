@@ -42,7 +42,7 @@ public class FacebookLoginServlet extends HttpServlet {
 				}
 			}
 			session.setAttribute("gender", genderChar);
-			System.out.println("Code " + code);
+			session.setAttribute("code", code);
 			resp.sendRedirect("/");
 		} catch (FacebookException e) {
 			resp.getOutputStream().print("Error logging in with Facebook " + e);

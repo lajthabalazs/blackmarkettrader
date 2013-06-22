@@ -117,10 +117,28 @@ public class TradingEvent extends Event {
 		return date;
 	}
 
-	@Override
-	public String toString() {
+	/**
+	 * @param timeDiff Display time minus data time.
+	 * @param calculator
+	 * @return
+	 */
+	public String getString(long timeDiff, DayCaclulator calculator) {
 		String base = "";
 		String playerName = otherPlayersName;
-		return base + date.toString() + " - " + outcome.generateString(playerName) + ((getPointValue()==0)?"":((getPointValue()>0)?" (+$" + getPointValue():" (-$" + (-1 * getPointValue())) + ")");
+		Date eventDate = date;
+		if (responseDate != null) {
+			eventDate = responseDate;
+		}
+		if (calculator != null) {
+			java.util.Date dataDate = calculator.toDate(eventDate);
+			java.util.Date localDate = new java.util.Date(dataDate.getTime() + timeDiff);
+			eventDate = calculator.fromDate(localDate);
+		}
+		return base + eventDate.toString() + " - " + outcome.generateString(playerName) + ((getPointValue()==0)?"":((getPointValue()>0)?" (+$" + getPointValue():" (-$" + (-1 * getPointValue())) + ")");
+	}
+	
+	@Override
+	public String toString() {
+		return getString(0, null);
 	}
 }

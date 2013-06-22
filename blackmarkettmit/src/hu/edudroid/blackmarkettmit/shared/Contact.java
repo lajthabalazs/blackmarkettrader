@@ -20,7 +20,6 @@ public class Contact implements Serializable {
 	public static final byte HISTORY_INVALID = -1;
 
 	public static final int TRADE_HISTORY_ENTRY_LENGTH = 8;
-	public static final int LOGIN_HISTORY_ENTRY_LENGTH = 7;
 
 	public static final int START_YEAR = 2012;
 	public static final int ENERGY_CONSUMPTION_CONTACT_REQUEST = 30;

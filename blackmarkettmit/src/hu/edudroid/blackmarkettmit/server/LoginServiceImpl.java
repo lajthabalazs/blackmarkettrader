@@ -79,5 +79,6 @@ public class LoginServiceImpl extends RemoteServiceServlet implements
 		}
 		loginInfo.setServerTime(System.currentTimeMillis());
 		return loginInfo;
+
 	}
 }

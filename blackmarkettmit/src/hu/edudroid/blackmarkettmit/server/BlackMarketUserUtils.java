@@ -54,13 +54,15 @@ public class BlackMarketUserUtils {
 		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 		double random = Math.random();
 		Filter randomFilter = new FilterPredicate("random", FilterOperator.LESS_THAN_OR_EQUAL, random);
-		System.out.println("Random value " + random);
+		System.out.println("Random value used to find a user" + random);
 		Query q = new Query("BlackMarketUser").setFilter(randomFilter).addSort("random",SortDirection.DESCENDING);
 		PreparedQuery pq = datastore.prepare(q);
 
 		for (Entity result : pq.asIterable()) {
+			System.out.println("Found a user");
 			return BlackMarketUserUtils.createFromEntity(result);
 		}
+		System.out.println("No user found.");
 		return null;
 	}
 
@@ -69,7 +71,7 @@ public class BlackMarketUserUtils {
 		byte[] dates = blackMarketUser.getLoginDates();
 		Calendar calendar = Calendar.getInstance();
 		int nextIndex = dates.length;
-		byte[] newDates = new byte[nextIndex + Contact.LOGIN_HISTORY_ENTRY_LENGTH];
+		byte[] newDates = new byte[nextIndex + BlackMarketUser.LOGIN_HISTORY_ENTRY_LENGTH];
 		System.arraycopy(dates, 0, newDates, 0, nextIndex);
 		newDates[nextIndex] = (byte)(calendar.get(Calendar.YEAR) - Contact.START_YEAR);
 		nextIndex++;
@@ -92,24 +94,24 @@ public class BlackMarketUserUtils {
 		addLoginEvent(blackMarketUser, true);
 	}
 
-	public static boolean addLoginEventIfNotLoggedInToday(BlackMarketUser blackMarketUser) {
+	public static void userRequestOccured(BlackMarketUser blackMarketUser) {
 		System.out.println("Checking login entry");
 		byte[] dates = blackMarketUser.getLoginDates();
 		Calendar currentTime = Calendar.getInstance();
 		if (dates.length == 0) {
 			System.out.println("First login ever");
 			addLoginEvent(blackMarketUser, false);
-			return true;
-		} else if ((dates[dates.length - Contact.LOGIN_HISTORY_ENTRY_LENGTH] != (byte)(currentTime.get(Calendar.YEAR) - Contact.START_YEAR)) ||
-				(dates[dates.length - Contact.LOGIN_HISTORY_ENTRY_LENGTH + 1] != (byte)(currentTime.get(Calendar.MONTH))) ||
-				(dates[dates.length - Contact.LOGIN_HISTORY_ENTRY_LENGTH + 2] != (byte)(currentTime.get(Calendar.DAY_OF_MONTH) - 1))) {
-			// New date
+		} else if ((dates[dates.length - BlackMarketUser.LOGIN_HISTORY_ENTRY_LENGTH] != (byte)(currentTime.get(Calendar.YEAR) - Contact.START_YEAR)) ||
+				(dates[dates.length - BlackMarketUser.LOGIN_HISTORY_ENTRY_LENGTH + 1] != (byte)(currentTime.get(Calendar.MONTH))) ||
+				(dates[dates.length - BlackMarketUser.LOGIN_HISTORY_ENTRY_LENGTH + 2] != (byte)(currentTime.get(Calendar.DAY_OF_MONTH) - 1))) {
 			System.out.println("No login today");
 			addLoginEvent(blackMarketUser, false);
-			return true;
-		} else {
-			return false;
 		}
+		// Notifications and achievements have been displayed for sure
+		// When these will be on different tabs, add functions to store state
+		blackMarketUser.setLastNotificationView(currentTime.getTimeInMillis());
+		blackMarketUser.setLastRewardView(currentTime.getTimeInMillis());
+		BlackMarketUserUtils.save(blackMarketUser);
 	}
 
 	public static void save(BlackMarketUser blackMarketUser) {
@@ -132,8 +134,10 @@ public class BlackMarketUserUtils {
 		entity.setProperty("emailAddress", blackMarketUser.getEmailAddress());
 		entity.setProperty("gender", blackMarketUser.getGender());
 		entity.setProperty("birthday", blackMarketUser.getBirthday());
+		entity.setProperty("lastNotification", blackMarketUser.getLastNotificationView());
+		entity.setProperty("lastReward", blackMarketUser.getLastRewardView());
 		entity.setProperty("loginDates", new Blob(blackMarketUser.getLoginDates()));
-		System.out.println("Saved login dates " + blackMarketUser.getLoginDates().length);
+		System.out.println("Saved login dates " + (blackMarketUser.getLoginDates().length/BlackMarketUser.LOGIN_HISTORY_ENTRY_LENGTH));
 		datastore.put(entity);
 	}
 
@@ -143,20 +147,35 @@ public class BlackMarketUserUtils {
 		user.setRandom(((Double)result.getProperty("random")).floatValue());
 		try {
 			user.setEmailAddress((String)result.getProperty("emailAddress"));
-		} catch (Exception e) {}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		try {
 			user.setGender((String)result.getProperty("gender"));
-		} catch (Exception e) {}
+		} catch (Exception e) {
+			e.printStackTrace();			
+		}
+		try {
+			user.setLastNotificationView(Long.parseLong((String)result.getProperty("lastNotification")));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		try {
+			user.setLastRewardView(Long.parseLong((String)result.getProperty("lastReward")));
+		} catch (Exception e) {
+			e.printStackTrace();			
+		}
 		try {
 			user.setBirthday((String)result.getProperty("birthday"));
-		} catch (Exception e) {}
+		} catch (Exception e) {
+			e.printStackTrace();			
+		}
 		user.setEntityKey(KeyFactory.keyToString(result.getKey()));
 		try {
 			user.setLoginDates(((Blob)result.getProperty("loginDates")).getBytes());
 			System.out.println("Login dates retrieved " + user.getLoginDates().length);
 		} catch(Exception e) {
 			e.printStackTrace();
-			user.setLoginDates(new byte[0]);
 		}
 		return user;
 	}

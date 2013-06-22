@@ -22,7 +22,7 @@ public class UserManager {
 			System.out.println("Facebook user found.");
 			return BlackMarketUserUtils.getUserByExternalId(userId);
 		}
-		System.out.println("Facebook user found.");
+		System.out.println("No user found.");
 		return null;
 	}
 }

@@ -16,12 +16,17 @@
 	</servlet>
 
 	<servlet>
-		<servlet-name>loginService</servlet-name>
+		<servlet-name>LoginService</servlet-name>
 		<servlet-class>hu.edudroid.blackmarkettmit.server.LoginServiceImpl</servlet-class>
 	</servlet>
 
 	<servlet>
-		<servlet-name>contactRequest</servlet-name>
+		<servlet-name>FacebookMessageServlet</servlet-name>
+		<servlet-class>hu.edudroid.blackmarkettmit.server.FacebookMessageServlet</servlet-class>
+	</servlet>
+	
+	<servlet>
+		<servlet-name>ContactRequest</servlet-name>
 		<servlet-class>hu.edudroid.blackmarkettmit.server.ContactRequestServiceImpl</servlet-class>
 	</servlet>
 
@@ -52,6 +57,16 @@
 		</init-param>
 	</servlet>
 	
+	<servlet>
+		<servlet-name>FacebookMessageServlet</servlet-name>
+		<servlet-class>hu.edudroid.blackmarkettmit.server.FacebookMessageServlet</servlet-class>
+		<init-param>
+			<param-name>services</param-name>
+			<param-value/>
+		</init-param>
+	</servlet>
+
+	
 	<!-- Servlet mapping -->
 	<servlet-mapping>
 		<servlet-name>SystemServiceServlet</servlet-name>
@@ -59,12 +74,12 @@
 	</servlet-mapping>
 
 	<servlet-mapping>
-		<servlet-name>loginService</servlet-name>
+		<servlet-name>LoginService</servlet-name>
 		<url-pattern>/blackmarkettmit/login</url-pattern>
 	</servlet-mapping>
 
 	<servlet-mapping>
-		<servlet-name>contactRequest</servlet-name>
+		<servlet-name>ContactRequest</servlet-name>
 		<url-pattern>/blackmarkettmit/contactRequest</url-pattern>
 	</servlet-mapping>
 
@@ -78,7 +93,12 @@
 		<servlet-name>FacebookLogoutServlet</servlet-name>
 		<url-pattern>/FacebookLogoutServlet/*</url-pattern>
 	</servlet-mapping>
-	
+
+	<servlet-mapping>
+		<servlet-name>FacebookMessageServlet</servlet-name>
+		<url-pattern>/FacebookMessageServlet/*</url-pattern>
+	</servlet-mapping>
+		
 	<servlet-mapping>
 		<servlet-name>FacebookServlet</servlet-name>
 		<url-pattern>/FacebookServlet/*</url-pattern>

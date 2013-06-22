@@ -14,19 +14,19 @@ public class LoginBasedRewardsAndBadges {
 			}
 		}
 	}
+	
 	private int longestStreak = 0;
 	private int currentStreak = 0;
 	private int missedDays = 0;
 	private int totalBonus = 0;
 	
-	
 	public LoginBasedRewardsAndBadges (byte[] loginHistory, DayCaclulator dayCalculator) {
-		int eventCount = loginHistory.length / Contact.LOGIN_HISTORY_ENTRY_LENGTH;
+		int eventCount = loginHistory.length / BlackMarketUser.LOGIN_HISTORY_ENTRY_LENGTH;
 		Date lastDate = null;
 		Date streakStart = null;
 		Date eventDate = null;
 		for (int i = 0; i < eventCount; i++) {
-			eventDate = new Date(loginHistory, i * Contact.LOGIN_HISTORY_ENTRY_LENGTH);
+			eventDate = new Date(loginHistory, i * BlackMarketUser.LOGIN_HISTORY_ENTRY_LENGTH);
 			if (streakStart == null) {
 				streakStart = eventDate;
 			}
@@ -87,7 +87,8 @@ public class LoginBasedRewardsAndBadges {
 	}
 
 	public int getCurrentStreak() {
-		return currentStreak;
+		return 3;
+		// TODO uncomment! return currentStreak;
 	}
 
 	public int getMissedDays() {
@@ -98,18 +99,3 @@ public class LoginBasedRewardsAndBadges {
 		return totalBonus;
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

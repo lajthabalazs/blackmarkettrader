@@ -7,9 +7,11 @@ public class BlackMarketUser implements Serializable{
 	private static final long serialVersionUID = -8822523082905084208L;
 	private static final int MAX_ENERGY = 90;
 	
-	public static final String GENDER_MALE = "m";
-	public static final String GENDER_FEMALE = "f";
-	public static final String GENDER_UNKNOWN = "u";
+	public static final String GENDER_MALE = "male";
+	public static final String GENDER_FEMALE = "female";
+	public static final String GENDER_UNKNOWN = "unknown";
+	
+	public static final int LOGIN_HISTORY_ENTRY_LENGTH = 7;	
 	
 	private String entityKey;
 	private String externalId;
@@ -19,6 +21,8 @@ public class BlackMarketUser implements Serializable{
 	private String birthday;
 	private float random;
 	private byte[] loginDates;
+	private long lastNotificationView = -1;
+	private long lastRewardView = -1;
 	
 	public BlackMarketUser() {
 		
@@ -88,5 +92,21 @@ public class BlackMarketUser implements Serializable{
 
 	public void setLoginDates(byte[] loginDates) {
 		this.loginDates = loginDates;
+	}
+
+	public long getLastNotificationView() {
+		return lastNotificationView;
+	}
+
+	public void setLastNotificationView(long lastNotificationView) {
+		this.lastNotificationView = lastNotificationView;
+	}
+
+	public long getLastRewardView() {
+		return lastRewardView;
+	}
+
+	public void setLastRewardView(long lastRewardView) {
+		this.lastRewardView = lastRewardView;
 	}
 }

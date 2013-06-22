@@ -36,19 +36,19 @@ public class Model {
 				// Check if contact creation reduced energy
 				if (contact.getViewer() == contact.getWhoRequested()) {
 					Date requestDate = GWTDayCalculator.DAY_CALCULATOR.fromDate(contact.getRequestDate());
-					if (requestDate.equals(currentDate)) {
+					if (requestDate.sameDay(currentDate)) {
 						usedEnergy += Contact.ENERGY_CONSUMPTION_CONTACT_REQUEST;
 					}
 				}
 				// Check if contact request reduced energy
 				if (contact.getViewer() == 0) {
 					if (contact.getFirstPlayerRequestsRecommandation() != null &&
-							 GWTDayCalculator.DAY_CALCULATOR.fromDate(contact.getFirstPlayerRequestsRecommandation()).equals(currentDate)) {
+							 GWTDayCalculator.DAY_CALCULATOR.fromDate(contact.getFirstPlayerRequestsRecommandation()).sameDay(currentDate)) {
 						usedEnergy += Contact.ENERGY_CONSUMPTION_CONTACT_REQUEST;
 					}
 				} else {
 					if (contact.getSecondPlayerRequestsRecommandation() != null &&
-							 GWTDayCalculator.DAY_CALCULATOR.fromDate(contact.getSecondPlayerRequestsRecommandation()).equals(currentDate)) {
+							 GWTDayCalculator.DAY_CALCULATOR.fromDate(contact.getSecondPlayerRequestsRecommandation()).sameDay(currentDate)) {
 						usedEnergy += Contact.ENERGY_CONSUMPTION_CONTACT_REQUEST;
 					}
 				}

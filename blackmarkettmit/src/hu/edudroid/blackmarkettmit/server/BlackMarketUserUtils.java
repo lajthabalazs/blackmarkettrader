@@ -156,12 +156,12 @@ public class BlackMarketUserUtils {
 			e.printStackTrace();			
 		}
 		try {
-			user.setLastNotificationView(Long.parseLong((String)result.getProperty("lastNotification")));
+			user.setLastNotificationView((Long)result.getProperty("lastNotification"));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		try {
-			user.setLastRewardView(Long.parseLong((String)result.getProperty("lastReward")));
+			user.setLastRewardView((Long)result.getProperty("lastReward"));
 		} catch (Exception e) {
 			e.printStackTrace();			
 		}

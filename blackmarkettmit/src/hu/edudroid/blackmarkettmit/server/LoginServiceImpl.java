@@ -1,5 +1,7 @@
 package hu.edudroid.blackmarkettmit.server;
 
+import java.util.Date;
+
 import hu.edudroid.blackmarkettmit.client.services.LoginService;
 import hu.edudroid.blackmarkettmit.shared.BlackMarketUser;
 import hu.edudroid.blackmarkettmit.shared.LoginInfo;
@@ -80,5 +82,27 @@ public class LoginServiceImpl extends RemoteServiceServlet implements
 		loginInfo.setServerTime(System.currentTimeMillis());
 		return loginInfo;
 
+	}
+
+	@Override
+	public boolean notificationsDisplayed(boolean rewardsShown, boolean notificationsShown, boolean tutorialsShown) {
+		System.out.println("Saving notifications. Reward " + rewardsShown + " notifications " + notificationsShown + " tutorials " + tutorialsShown);
+		BlackMarketUser blackMarketUser = UserManager.getCurrentUser(getThreadLocalRequest().getSession());
+		if (blackMarketUser != null) {
+			long date = new Date().getTime();
+			if (rewardsShown) {
+				blackMarketUser.setLastRewardView(date);
+			}
+			if (notificationsShown) {
+				blackMarketUser.setLastNotificationView(date);
+			}
+			if (tutorialsShown) {
+				blackMarketUser.setLastTutorialView(date);
+			}
+			BlackMarketUserUtils.save(blackMarketUser);
+			return true;
+		} else {
+			return false;
+		}
 	}
 }

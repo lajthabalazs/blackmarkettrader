@@ -94,24 +94,27 @@ public class BlackMarketUserUtils {
 		addLoginEvent(blackMarketUser, true);
 	}
 
-	public static void userRequestOccured(BlackMarketUser blackMarketUser) {
+	/**
+	 * Checks if user should be modified or not.
+	 * @param blackMarketUser The user
+	 * @return True if user has been modified, false otherwise
+	 */
+	public static boolean userRequestOccured(BlackMarketUser blackMarketUser) {
 		System.out.println("Checking login entry");
 		byte[] dates = blackMarketUser.getLoginDates();
 		Calendar currentTime = Calendar.getInstance();
 		if (dates.length == 0) {
 			System.out.println("First login ever");
 			addLoginEvent(blackMarketUser, false);
+			return true;
 		} else if ((dates[dates.length - BlackMarketUser.LOGIN_HISTORY_ENTRY_LENGTH] != (byte)(currentTime.get(Calendar.YEAR) - Contact.START_YEAR)) ||
 				(dates[dates.length - BlackMarketUser.LOGIN_HISTORY_ENTRY_LENGTH + 1] != (byte)(currentTime.get(Calendar.MONTH))) ||
 				(dates[dates.length - BlackMarketUser.LOGIN_HISTORY_ENTRY_LENGTH + 2] != (byte)(currentTime.get(Calendar.DAY_OF_MONTH) - 1))) {
 			System.out.println("No login today");
 			addLoginEvent(blackMarketUser, false);
+			return true;
 		}
-		// Notifications and achievements have been displayed for sure
-		// When these will be on different tabs, add functions to store state
-		blackMarketUser.setLastNotificationView(currentTime.getTimeInMillis());
-		blackMarketUser.setLastRewardView(currentTime.getTimeInMillis());
-		BlackMarketUserUtils.save(blackMarketUser);
+		return false;
 	}
 
 	public static void save(BlackMarketUser blackMarketUser) {
@@ -136,6 +139,7 @@ public class BlackMarketUserUtils {
 		entity.setProperty("birthday", blackMarketUser.getBirthday());
 		entity.setProperty("lastNotification", blackMarketUser.getLastNotificationView());
 		entity.setProperty("lastReward", blackMarketUser.getLastRewardView());
+		entity.setProperty("lastTutorial", blackMarketUser.getLastTutorialView());
 		entity.setProperty("loginDates", new Blob(blackMarketUser.getLoginDates()));
 		System.out.println("Saved login dates " + (blackMarketUser.getLoginDates().length/BlackMarketUser.LOGIN_HISTORY_ENTRY_LENGTH));
 		datastore.put(entity);
@@ -159,11 +163,19 @@ public class BlackMarketUserUtils {
 			user.setLastNotificationView((Long)result.getProperty("lastNotification"));
 		} catch (Exception e) {
 			e.printStackTrace();
+			user.setLastNotificationView(-1);
 		}
 		try {
 			user.setLastRewardView((Long)result.getProperty("lastReward"));
 		} catch (Exception e) {
 			e.printStackTrace();			
+			user.setLastRewardView(-1);
+		}
+		try {
+			user.setLastTutorialView((Long)result.getProperty("lastTutorial"));
+		} catch (Exception e) {
+			e.printStackTrace();			
+			user.setLastTutorialView(0);
 		}
 		try {
 			user.setBirthday((String)result.getProperty("birthday"));

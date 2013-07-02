@@ -7,4 +7,5 @@ import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 @RemoteServiceRelativePath("login")
 public interface LoginService extends RemoteService {
 	public LoginInfo checkIfLoggedIn(String requestUri);
+	public boolean notificationsDisplayed(boolean rewardsShown, boolean notificationsShown, boolean tutorialsShown);
 }

@@ -23,6 +23,7 @@ public class BlackMarketUser implements Serializable{
 	private byte[] loginDates;
 	private long lastNotificationView = -1;
 	private long lastRewardView = -1;
+	private long lastTutorialView = -1;
 	
 	public BlackMarketUser() {
 		
@@ -108,5 +109,13 @@ public class BlackMarketUser implements Serializable{
 
 	public void setLastRewardView(long lastRewardView) {
 		this.lastRewardView = lastRewardView;
+	}
+
+	public long getLastTutorialView() {
+		return lastTutorialView;
+	}
+
+	public void setLastTutorialView(long lastTutorialView) {
+		this.lastTutorialView = lastTutorialView;
 	}
 }

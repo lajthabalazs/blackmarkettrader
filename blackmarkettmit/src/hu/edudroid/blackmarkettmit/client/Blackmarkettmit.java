@@ -7,6 +7,8 @@ import hu.edudroid.blackmarkettmit.client.services.LoginService;
 import hu.edudroid.blackmarkettmit.client.services.LoginServiceAsync;
 import hu.edudroid.blackmarkettmit.shared.Contact;
 import hu.edudroid.blackmarkettmit.shared.Model;
+import hu.edudroid.blackmarkettmit.shared.Notification;
+import hu.edudroid.blackmarkettmit.shared.Notification.Component;
 import hu.edudroid.blackmarkettmit.shared.TradingEvent;
 import hu.edudroid.blackmarkettmit.shared.LoginInfo;
 import hu.edudroid.blackmarkettmit.shared.PlayerState;
@@ -32,6 +34,7 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.ScrollPanel;
 import com.google.gwt.user.client.ui.VerticalPanel;
+import com.google.gwt.user.client.ui.Widget;
 
 /**
  * Entry point classes define <code>onModuleLoad()</code>.
@@ -46,14 +49,17 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 	private long serverTimeAtLastLogin = 0;
 	private long clientTimeAtLastLogin = 0;
 
-	ContactRequestServiceAsync contactRequestsService = GWT.create(ContactRequestService.class);
+	private ContactRequestServiceAsync contactRequestsService;
+	private LoginServiceAsync loginService;
 	private SuggestDialog suggestDialog;
+	private VerticalPanel loginPanel;
 
 	public void onModuleLoad() {
 		updateLoginPanel();
 		final ProgressDialog dialog = new ProgressDialog("Authenticating", "This might take a few seconds. Kick back and relax!");
 		// Check login status using login service.
-		LoginServiceAsync loginService = GWT.create(LoginService.class);
+		contactRequestsService = GWT.create(ContactRequestService.class);
+		loginService = GWT.create(LoginService.class);
 		loginService.checkIfLoggedIn(GWT.getHostPageBaseURL(), new AsyncCallback<LoginInfo>() {
 
 			public void onFailure(Throwable error) {
@@ -108,6 +114,7 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 		long timeDiff = serverTimeAtLastLogin - clientTimeAtLastLogin;
 		Date serverDate = new Date(date.getTime() + timeDiff);
 		debugHolder.add(new Label("Server time " + dtf.format(serverDate)));
+		debugHolder.add(new Label("Last notification " + dtf.format(new Date(loginInfo.getBlackMarketUser().getLastNotificationView()))));
 		// Check login history
 		int currentStreak = model.getCurrentStreak();
 		RootPanel streakHolder = RootPanel.get("streakHolder");
@@ -135,11 +142,31 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 		updateActionPanel();
 		updateRequestsPanel();
 		updateEventsPanel();
-		// TODO notifications
+		List<Notification> notifications = model.getNotifications();
+		if (notifications != null) {
+			for (Notification notification : notifications) {
+				new NotificationPopup(notification.getTitle(), notification.getMessage(), getWidget(notification.getComponent()));
+			}
+		}
 		// TODO tutorial
-		String message = model.getCurrentStreakMessage();
-		if (message != null) {
-			new TutorialPopup("You're doing great!", message, streakHolder);
+		loginService.notificationsDisplayed(true, true, true, new AsyncCallback<Boolean>() {
+			
+			@Override
+			public void onSuccess(Boolean result) {
+			}
+			
+			@Override
+			public void onFailure(Throwable caught) {
+			}
+		});
+	}
+
+	private Widget getWidget(Component component) {
+		switch (component) {
+		case LOGIN_BOX:
+			return loginPanel;
+		default:
+			return null;
 		}
 	}
 
@@ -163,7 +190,7 @@ public class Blackmarkettmit implements EntryPoint, GetContactDialogListener,
 	private void updateLoginPanel(){
 		RootPanel loginHolder = RootPanel.get("loginHolder");
 		loginHolder.clear();
-		VerticalPanel loginPanel = new VerticalPanel();
+		loginPanel = new VerticalPanel();
 		if (loginInfo == null || !loginInfo.isLoggedIn()) {
 			// Assemble login panel.
 			loginPanel.add(new Label("Log in with Facebook or Google!"));

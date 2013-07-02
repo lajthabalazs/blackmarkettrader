@@ -3,7 +3,10 @@ package hu.edudroid.blackmarkettmit.shared;
 import hu.edudroid.blackmarkettmit.client.GWTDayCalculator;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 public class Model {
 	private List<Contact> contactList;
@@ -12,6 +15,7 @@ public class Model {
 	private int remainingEnergy = 0;
 	private LoginBasedRewardsAndBadges rewards;
 	private DayCaclulator dayCalculator;
+	private SortedSet<Notification> notifications = new TreeSet<Notification>();
 	
 	public Model(DayCaclulator dayCalculator) {
 		this.dayCalculator = dayCalculator;
@@ -26,6 +30,7 @@ public class Model {
 	}
 
 	public void setContacts(List<Contact> contacts) {
+		notifications = new TreeSet<Notification>();
 		totalScore = 0;
 		totalScore = totalScore + rewards.getTotalBonus();
 		Date currentDate = GWTDayCalculator.DAY_CALCULATOR.fromDate(new java.util.Date());
@@ -60,6 +65,12 @@ public class Model {
 			}
 			remainingEnergy = loginInfo.getBlackMarketUser().getMaxEnergy() - usedEnergy;
 		}
+		if (rewards != null) {
+			Collection<Notification> rewardNotifications = rewards.getNotifications();
+			if (rewardNotifications != null) {
+				notifications.addAll(rewards.getNotifications());
+			}
+		}
 	}
 
 	public ArrayList<TradingEvent> getAllTradingEvents() {
@@ -86,19 +97,23 @@ public class Model {
 		}
 	}
 
-	public String getCurrentStreakMessage() {
-		if (getCurrentStreak() > 0) {
-			// Set a pop up message
-			return "Wow, you're a hard worker! " + (getCurrentStreak() + 1 ) + " days in a raw, the boss is pleased. He rewarded you with $" + LoginBasedRewardsAndBadges.streakCurrentDaysValue(getCurrentStreak());
-		}
-		return null;
-	}
-
 	public int getRemainingEnergy() {
 		return remainingEnergy;
 	}
 
 	public int getTotalScore() {
 		return totalScore;
+	}
+
+	public List<Notification> getNotifications() {
+		System.out.println("Checking notifications for user " + loginInfo.getBlackMarketUser().getLastNotificationView());
+		ArrayList<Notification> ret = new ArrayList<Notification>();
+		for (Notification notification : notifications) {
+			System.out.println("Notification time " + notification.getTime() + " ( " + (notification.getTime() - loginInfo.getBlackMarketUser().getLastNotificationView()) + ")");
+			if (notification.getTime() > loginInfo.getBlackMarketUser().getLastNotificationView()) {
+				ret.add(notification);
+			}
+		}
+		return ret;
 	}
 }
